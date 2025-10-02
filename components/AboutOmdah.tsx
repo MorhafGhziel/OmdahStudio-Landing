@@ -168,14 +168,22 @@ export function AboutOmdah() {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             className="flex justify-center"
           >
-            <motion.a
-              href="#services"
+            <motion.button
+              onClick={() => {
+                const servicesSection = document.getElementById("services");
+                if (servicesSection) {
+                  servicesSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }
+              }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-12 py-4 bg-white text-black font-kufam text-xl hover:bg-white/90 transition-all"
+              className="px-12 py-4 bg-white text-black font-kufam text-xl hover:bg-white/90 transition-all cursor-pointer"
             >
               اكتشف خدماتنا
-            </motion.a>
+            </motion.button>
           </motion.div>
         </div>
       </div>

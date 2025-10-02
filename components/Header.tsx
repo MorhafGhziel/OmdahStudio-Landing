@@ -21,6 +21,17 @@ export function Header() {
     ["blur(0px)", "blur(12px)"]
   );
 
+  const handleSmoothScroll = (href: string) => {
+    const elementId = href.replace("#", "");
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
   const navItems = [
     { name: "أعمالنا", href: "#work" },
     { name: "خدماتنا", href: "#services" },
@@ -47,12 +58,12 @@ export function Header() {
             >
               {navItems.map((item) => (
                 <div key={item.name} className="relative group">
-                  <Link
-                    href={item.href}
-                    className="relative text-base font-kufam font-medium tracking-wide transition-all duration-300 block transform group-hover:-translate-y-0.5 text-white hover:text-gray-300"
+                  <button
+                    onClick={() => handleSmoothScroll(item.href)}
+                    className="relative text-base font-kufam font-medium tracking-wide transition-all duration-300 block transform group-hover:-translate-y-0.5 text-white hover:text-gray-300 cursor-pointer"
                   >
                     {item.name}
-                  </Link>
+                  </button>
                   <div className="absolute -bottom-1 right-0 w-full h-0.5 origin-right transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100 bg-white" />
                 </div>
               ))}
@@ -120,13 +131,15 @@ export function Header() {
               }}
               transition={{ delay: index * 0.1 }}
             >
-              <Link
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className="text-3xl font-kufam font-bold tracking-tighter transition-colors text-white hover:text-white/60"
+              <button
+                onClick={() => {
+                  handleSmoothScroll(item.href);
+                  setIsOpen(false);
+                }}
+                className="text-3xl font-kufam font-bold tracking-tighter transition-colors text-white hover:text-white/60 cursor-pointer"
               >
                 {item.name}
-              </Link>
+              </button>
             </motion.div>
           ))}
         </div>
