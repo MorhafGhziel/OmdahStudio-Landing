@@ -87,8 +87,8 @@ export function AboutOmdah() {
                 key={i}
                 className="absolute w-1 h-1 bg-white/20"
                 style={{
-                  left: `${i * 25 + Math.random() * 10}%`,
-                  top: `${i * 12 + Math.random() * 10}%`,
+                  left: `${15 + i * 10}%`,
+                  top: `${20 + (i % 3) * 15}%`,
                 }}
                 animate={{
                   opacity: [0.2, 0.5, 0.2],
