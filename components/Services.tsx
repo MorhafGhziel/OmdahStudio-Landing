@@ -59,11 +59,22 @@ const services: ServiceType[] = [
 ];
 
 // Group services into pairs
-const serviceRows = services.reduce<ServiceType[][]>((acc, service, index) => {
+// Group services into rows with different layouts
+const serviceRows = services.reduce<
+  { services: ServiceType[]; layout: "standard" | "featured" | "split" }[]
+>((acc, service, index) => {
+  const rowIndex = Math.floor(index / 2);
   if (index % 2 === 0) {
-    acc.push([service]);
+    // Start a new row
+    acc.push({
+      services: [service],
+      // Alternate between different layout types
+      layout:
+        rowIndex === 0 ? "featured" : rowIndex === 1 ? "split" : "standard",
+    });
   } else {
-    acc[acc.length - 1].push(service);
+    // Add to existing row
+    acc[acc.length - 1].services.push(service);
   }
   return acc;
 }, []);
@@ -77,7 +88,7 @@ export function Services() {
     <section
       id="services"
       ref={ref}
-      className="py-32 bg-white text-black min-h-screen"
+      className="py-32 bg-black text-black min-h-screen"
     >
       <div className="container mx-auto px-6">
         <motion.div
@@ -98,44 +109,82 @@ export function Services() {
             initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-6xl md:text-8xl font-kufam font-bold"
+            className="text-6xl md:text-8xl font-kufam font-bold text-white"
           >
             ما نقدمه لكم
           </motion.h2>
         </motion.div>
 
-        <div className="space-y-8">
-          {serviceRows.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex gap-8">
-              {row.map((service, index) => (
-                <motion.div
-                  key={service.id}
-                  className="w-1/2"
-                  animate={{
-                    width:
-                      hoveredId === service.id
-                        ? "55%"
-                        : hoveredId === row[index === 0 ? 1 : 0]?.id
-                        ? "45%"
-                        : "50%",
-                  }}
-                  transition={{
-                    duration: 0.6,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                >
-                  <ServiceCard
-                    service={service}
-                    isHovered={hoveredId === service.id}
-                    onHover={() => setHoveredId(service.id)}
-                    onLeave={() => setHoveredId(null)}
-                    isInView={isInView}
-                    index={rowIndex * 2 + index}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          ))}
+        <div className="space-y-12">
+          {/* Mobile View */}
+          <div className="md:hidden space-y-6">
+            {services.map((service, index) => (
+              <motion.div
+                key={service.id}
+                className="relative w-full"
+                style={{ height: 400 }}
+              >
+                <ServiceCard
+                  service={service}
+                  isHovered={true}
+                  onHover={() => {}}
+                  onLeave={() => {}}
+                  isInView={isInView}
+                  index={index}
+                  layout="standard"
+                />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Desktop View */}
+          <div className="hidden md:block space-y-12">
+            {serviceRows.map((row, rowIndex) => (
+              <div key={rowIndex} className="flex gap-8">
+                {row.services.map((service, index) => (
+                  <motion.div
+                    key={service.id}
+                    className="relative"
+                    animate={{
+                      width:
+                        hoveredId === service.id
+                          ? "55%"
+                          : hoveredId === row.services[index === 0 ? 1 : 0]?.id
+                          ? "45%"
+                          : row.layout === "featured"
+                          ? index === 0
+                            ? "60%"
+                            : "40%"
+                          : row.layout === "split"
+                          ? index === 0
+                            ? "65%"
+                            : "35%"
+                          : index === 0
+                          ? "55%"
+                          : "45%",
+                    }}
+                    transition={{
+                      duration: 0.6,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    style={{
+                      height: 600,
+                    }}
+                  >
+                    <ServiceCard
+                      service={service}
+                      isHovered={hoveredId === service.id}
+                      onHover={() => setHoveredId(service.id)}
+                      onLeave={() => setHoveredId(null)}
+                      isInView={isInView}
+                      index={rowIndex * 2 + index}
+                      layout={row.layout}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -149,6 +198,7 @@ interface ServiceCardProps {
   onLeave: () => void;
   isInView: boolean;
   index: number;
+  layout: "standard" | "featured" | "split";
 }
 
 function ServiceCard({
@@ -160,96 +210,80 @@ function ServiceCard({
 }: ServiceCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
-      className="relative group cursor-pointer overflow-hidden rounded-lg h-[400px]"
+      className="relative group cursor-pointer overflow-hidden rounded-xl w-full h-full border-1 border-white/30"
     >
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
         <Image
           src={service.image}
           alt={service.title}
           fill
           className="object-cover transition-all duration-700"
           style={{
-            filter: isHovered ? "blur(0)" : "blur(2px)",
             transform: isHovered ? "scale(1.05)" : "scale(1)",
           }}
         />
 
-        {/* Overlay with gradient */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0.3 }}
-          transition={{ duration: 0.3 }}
-        />
-
         {/* Content Container */}
         <div className="absolute inset-0 p-8 flex flex-col justify-end">
-          {/* Category */}
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-              opacity: isHovered ? 1 : 0.7,
-              y: isHovered ? 0 : 10,
-            }}
-            transition={{ duration: 0.4 }}
-            className="text-sm font-kufam text-white/80 mb-2"
-          >
-            {service.category}
-          </motion.p>
-
-          {/* Title */}
-          <h3 className="text-2xl font-kufam font-bold text-white mb-4 relative">
-            <span className="relative inline-block transition-all duration-300">
-              {service.title}
-            </span>
-          </h3>
-
-          {/* Description and Tags */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: isHovered ? 1 : 0,
-              y: isHovered ? 0 : 20,
-            }}
-            transition={{ duration: 0.4 }}
-            className="space-y-4"
-          >
-            <p className="text-white/90 font-kufam">{service.description}</p>
-
-            <div className="flex flex-wrap gap-2">
-              {["جودة عالية", "تسليم سريع", "دعم مستمر"].map((tag, i) => (
-                <motion.span
-                  key={tag}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{
-                    opacity: isHovered ? 1 : 0,
-                    scale: isHovered ? 1 : 0.8,
-                  }}
-                  transition={{ duration: 0.3, delay: isHovered ? i * 0.1 : 0 }}
-                  className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-kufam text-white/90"
-                >
-                  {tag}
-                </motion.span>
-              ))}
-            </div>
-
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: isHovered ? 1 : 0,
-                y: isHovered ? 0 : 20,
-              }}
+          <div className="max-w-[90%] mb-4">
+            {/* Category */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isHovered ? 1 : 0.7 }}
               transition={{ duration: 0.4 }}
-              className="mt-4 px-6 py-2 bg-white text-black font-kufam rounded-full hover:bg-white/90 transition-colors"
+              className="text-sm font-kufam text-white/80 mb-2"
             >
-              اطلب الخدمة
-            </motion.button>
-          </motion.div>
+              {service.category}
+            </motion.div>
+
+            {/* Title */}
+            <h3 className="text-2xl font-kufam font-bold text-white mb-4">
+              {service.title}
+            </h3>
+
+            {/* Description and Tags */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isHovered ? 1 : 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-4"
+            >
+              <p className="text-white/90 font-kufam line-clamp-2">
+                {service.description}
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {["جودة عالية", "تسليم سريع", "دعم مستمر"].map((tag, i) => (
+                  <motion.span
+                    key={tag}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isHovered ? 1 : 0 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: isHovered ? i * 0.1 : 0,
+                    }}
+                    className="px-3 py-1 backdrop-blur-sm rounded-full text-sm font-kufam bg-white/10 text-white/90"
+                  >
+                    {tag}
+                  </motion.span>
+                ))}
+              </div>
+
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isHovered ? 1 : 0 }}
+                transition={{ duration: 0.4 }}
+                className="mt-4 px-6 py-2 font-kufam rounded-full transition-colors bg-white/90 text-black hover:bg-white"
+              >
+                جودة عالية
+              </motion.button>
+            </motion.div>
+          </div>
         </div>
       </div>
     </motion.div>
