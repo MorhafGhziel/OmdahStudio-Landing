@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
@@ -84,6 +83,8 @@ export function Services() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
+  // Remove the section-wide animations and handle each element individually
+
   return (
     <section
       id="services"
@@ -91,29 +92,26 @@ export function Services() {
       className="py-32 bg-black text-black min-h-screen"
     >
       <div className="container mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="mb-20 text-right"
-        >
+        <div className="mb-20 text-right">
           <motion.p
-            initial={{ opacity: 0, x: -20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-sm font-kufam tracking-widest text-black/40 mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-2xl font-kufam tracking-widest text-white/70 mb-4"
           >
             خدماتنا
           </motion.p>
           <motion.h2
-            initial={{ opacity: 0, x: -30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-6xl md:text-8xl font-kufam font-bold text-white"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+            className="text-4xl md:text-6xl font-kufam font-bold text-white"
           >
             ما نقدمه لكم
           </motion.h2>
-        </motion.div>
+        </div>
 
         <div className="space-y-12">
           {/* Mobile View */}
@@ -123,6 +121,14 @@ export function Services() {
                 key={service.id}
                 className="relative w-full"
                 style={{ height: 400 }}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{
+                  duration: 1,
+                  ease: [0.22, 1, 0.36, 1],
+                  delay: index * 0.2,
+                }}
               >
                 <ServiceCard
                   service={service}
@@ -145,7 +151,8 @@ export function Services() {
                   <motion.div
                     key={service.id}
                     className="relative"
-                    animate={{
+                    style={{
+                      height: 600,
                       width:
                         hoveredId === service.id
                           ? "55%"
@@ -162,13 +169,23 @@ export function Services() {
                           : index === 0
                           ? "55%"
                           : "45%",
+                      transition: "width 0.6s cubic-bezier(0.22, 1, 0.36, 1)",
                     }}
+                    initial={{
+                      opacity: 0,
+                      x: index === 0 ? -50 : 50,
+                      scale: 0.95,
+                    }}
+                    whileInView={{
+                      opacity: 1,
+                      x: 0,
+                      scale: 1,
+                    }}
+                    viewport={{ once: true, margin: "-50px" }}
                     transition={{
-                      duration: 0.6,
+                      duration: 1.2,
+                      delay: rowIndex * 0.3 + index * 0.2,
                       ease: [0.22, 1, 0.36, 1],
-                    }}
-                    style={{
-                      height: 600,
                     }}
                   >
                     <ServiceCard
@@ -206,16 +223,12 @@ function ServiceCard({
   isHovered,
   onHover,
   onLeave,
-  index,
 }: ServiceCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
-      className="relative group cursor-pointer overflow-hidden rounded-xl w-full h-full border-1 border-white/30"
+      className="relative group cursor-pointer overflow-hidden rounded-xl w-full h-full"
     >
       <div className="absolute inset-0 w-full h-full overflow-hidden">
         <Image
@@ -280,7 +293,7 @@ function ServiceCard({
                 transition={{ duration: 0.4 }}
                 className="mt-4 px-6 py-2 font-kufam rounded-full transition-colors bg-white/90 text-black hover:bg-white"
               >
-                جودة عالية
+                العمدة
               </motion.button>
             </motion.div>
           </div>
