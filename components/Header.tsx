@@ -3,11 +3,10 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isInServices, setIsInServices] = useState(false);
   const { scrollY } = useScroll();
 
   const headerBg = useTransform(
@@ -21,21 +20,6 @@ export function Header() {
     [0, 100],
     ["blur(0px)", "blur(12px)"]
   );
-
-  useEffect(() => {
-    const handleScroll = () => {
-      // Check if we're in the services section
-      const servicesSection = document.getElementById("services");
-      if (servicesSection) {
-        const rect = servicesSection.getBoundingClientRect();
-        const isInView = rect.top <= 100 && rect.bottom >= 100;
-        setIsInServices(isInView);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const navItems = [
     { name: "أعمالنا", href: "#work" },
@@ -55,7 +39,6 @@ export function Header() {
       >
         <div className="container mx-auto px-6 lg:px-12">
           <div className="flex items-center justify-between h-20">
-            {/* Desktop Navigation */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -75,7 +58,6 @@ export function Header() {
               ))}
             </motion.div>
 
-            {/* Logo */}
             <Link href="/" className="relative group">
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -99,7 +81,6 @@ export function Header() {
               </motion.div>
             </Link>
 
-            {/* Mobile Menu Button */}
             <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -120,16 +101,13 @@ export function Header() {
         </div>
       </motion.nav>
 
-      {/* Mobile Menu */}
       <motion.div
         initial={false}
         animate={{
           x: isOpen ? 0 : "100%",
         }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className={`fixed inset-0 z-40 md:hidden ${
-          isInServices ? "bg-white" : "bg-black"
-        }`}
+        className="fixed inset-0 z-40 md:hidden bg-black"
       >
         <div className="flex flex-col items-center justify-center h-full gap-8 px-6">
           {navItems.map((item, index) => (
@@ -145,11 +123,7 @@ export function Header() {
               <Link
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`text-3xl font-kufam font-bold tracking-tighter transition-colors ${
-                  isInServices
-                    ? "text-black hover:text-gray-600"
-                    : "text-white hover:text-white/60"
-                }`}
+                className="text-3xl font-kufam font-bold tracking-tighter transition-colors text-white hover:text-white/60"
               >
                 {item.name}
               </Link>

@@ -12,9 +12,7 @@ export function AboutOmdah() {
 
   return (
     <motion.section className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden">
-      {/* Modern Dynamic Background */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Animated Grid */}
         <motion.div
           animate={{
             backgroundPosition: ["0% 0%", "100% 100%"],
@@ -35,7 +33,6 @@ export function AboutOmdah() {
           }}
         />
 
-        {/* Glowing Orbs */}
         {mounted && (
           <>
             <motion.div
@@ -75,7 +72,6 @@ export function AboutOmdah() {
           </>
         )}
 
-        {/* Geometric Lines */}
         {mounted && (
           <>
             {[...Array(3)].map((_, i) => (
@@ -105,7 +101,6 @@ export function AboutOmdah() {
           </>
         )}
 
-        {/* Floating Particles */}
         {mounted && (
           <div className="absolute inset-0">
             {[...Array(20)].map((_, i) => (
@@ -132,10 +127,8 @@ export function AboutOmdah() {
         )}
       </div>
 
-      {/* Content Container */}
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-6xl mx-auto text-center">
-          {/* Main Title */}
           <motion.h1
             className="text-6xl md:text-7xl font-bold mb-8 font-kufam"
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
@@ -146,7 +139,6 @@ export function AboutOmdah() {
             معك عُمدة
           </motion.h1>
 
-          {/* Tagline with Gradient */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -157,7 +149,6 @@ export function AboutOmdah() {
             ما يعتمد عليه مشروعك
           </motion.div>
 
-          {/* Description */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -170,7 +161,6 @@ export function AboutOmdah() {
             قوتنا.
           </motion.p>
 
-          {/* CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -190,33 +180,52 @@ export function AboutOmdah() {
         </div>
       </div>
 
-      {/* Modern Scroll Indicator */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
+        className="absolute bottom-4 md:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
       >
-        <motion.span
-          className="text-xs tracking-widest text-white/70 font-kufam"
-          animate={{ opacity: [0.4, 1, 0.4] }}
+        <motion.div
+          className="relative"
+          animate={{ opacity: [0.7, 1, 0.7] }}
           transition={{
-            duration: 2,
+            duration: 2.5,
             repeat: Number.POSITIVE_INFINITY,
             ease: "easeInOut",
           }}
         >
-          اسحب للأسفل
-        </motion.span>
+          <span className="text-xs font-kufam text-white/80 tracking-[0.2em] uppercase">
+            Scroll
+          </span>
+          <div className="absolute -bottom-1 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+        </motion.div>
 
-        <div className="relative w-6 h-10 rounded-full overflow-hidden">
+        <div className="relative w-6 h-10 border border-white/40 rounded-full overflow-hidden backdrop-blur-sm">
+          <div className="absolute inset-0 bg-white/5" />
+
           <motion.div
-            className="absolute top-1 left-1/2 w-1 h-1 bg-white rounded-full -translate-x-1/2"
+            className="absolute top-1 left-1/2 w-1 h-3 bg-white rounded-full -translate-x-1/2"
             animate={{
-              y: [0, 28, 0],
-              opacity: [0, 1, 0],
-              scale: [1, 0.8, 1],
+              y: [0, 20, 0],
+              opacity: [0.8, 1, 0.8],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "easeInOut",
+            }}
+          />
+
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
+            }}
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
             }}
             transition={{
               duration: 2,
@@ -226,22 +235,24 @@ export function AboutOmdah() {
           />
         </div>
 
-        <motion.div
-          className="absolute -z-10 w-20 h-20 rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)",
-          }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.1, 0.3],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
-        />
+        <div className="flex gap-1">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="w-1 h-1 bg-white/40 rounded-full"
+              animate={{
+                opacity: [0.4, 1, 0.4],
+                scale: [0.8, 1.2, 0.8],
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+                delay: i * 0.2,
+              }}
+            />
+          ))}
+        </div>
       </motion.div>
     </motion.section>
   );
