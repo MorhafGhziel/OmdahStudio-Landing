@@ -5,48 +5,71 @@ import { useEffect, useState } from "react";
 
 export function AboutOmdah() {
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return (
     <motion.section className="relative min-h-screen flex items-center justify-center bg-black text-white overflow-hidden">
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%"],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: "reverse",
-            ease: "linear",
-          }}
+          animate={
+            !isMobile
+              ? {
+                  backgroundPosition: ["0% 0%", "100% 100%"],
+                }
+              : {}
+          }
+          transition={
+            !isMobile
+              ? {
+                  duration: 20,
+                  repeat: Number.POSITIVE_INFINITY,
+                  repeatType: "reverse",
+                  ease: "linear",
+                }
+              : {}
+          }
           className="absolute inset-0 opacity-[0.07]"
           style={{
             backgroundImage: `
               linear-gradient(to right, white 1px, transparent 1px),
               linear-gradient(to bottom, white 1px, transparent 1px)
             `,
-            backgroundSize: "60px 60px",
+            backgroundSize: isMobile ? "30px 30px" : "60px 60px",
           }}
         />
 
         {mounted && (
           <>
             <div
-              className="absolute w-[500px] h-[500px] rounded-full bg-white/5 blur-[100px]"
+              className={`absolute rounded-full bg-white/5 ${
+                isMobile
+                  ? "w-[250px] h-[250px] blur-[50px]"
+                  : "w-[500px] h-[500px] blur-[100px]"
+              }`}
               style={{
-                left: "20%",
-                top: "20%",
+                left: isMobile ? "10%" : "20%",
+                top: isMobile ? "10%" : "20%",
               }}
             />
             <div
-              className="absolute w-[300px] h-[300px] rounded-full bg-white/5 blur-[80px]"
+              className={`absolute rounded-full bg-white/5 ${
+                isMobile
+                  ? "w-[150px] h-[150px] blur-[40px]"
+                  : "w-[300px] h-[300px] blur-[80px]"
+              }`}
               style={{
-                right: "20%",
-                bottom: "20%",
+                right: isMobile ? "10%" : "20%",
+                bottom: isMobile ? "10%" : "20%",
               }}
             />
           </>
@@ -54,51 +77,60 @@ export function AboutOmdah() {
 
         {mounted && (
           <>
-            {[...Array(2)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute border border-white/10"
-                style={{
-                  width: 300 + i * 200,
-                  height: 300 + i * 200,
-                  left: "50%",
-                  top: "50%",
-                  x: "-50%",
-                  y: "-50%",
-                  rotate: i * 15,
-                }}
-                animate={{
-                  rotate: [i * 15, i * 15 + 360],
-                }}
-                transition={{
-                  duration: 30,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "linear",
-                }}
-              />
-            ))}
+            {!isMobile &&
+              [...Array(2)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute border border-white/10"
+                  style={{
+                    width: 300 + i * 200,
+                    height: 300 + i * 200,
+                    left: "50%",
+                    top: "50%",
+                    x: "-50%",
+                    y: "-50%",
+                    rotate: i * 15,
+                  }}
+                  animate={{
+                    rotate: [i * 15, i * 15 + 360],
+                  }}
+                  transition={{
+                    duration: 30,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "linear",
+                  }}
+                />
+              ))}
           </>
         )}
 
         {mounted && (
           <div className="absolute inset-0">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(isMobile ? 4 : 8)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute w-1 h-1 bg-white/20"
                 style={{
-                  left: `${15 + i * 10}%`,
+                  left: `${15 + i * (isMobile ? 20 : 10)}%`,
                   top: `${20 + (i % 3) * 15}%`,
                 }}
-                animate={{
-                  opacity: [0.2, 0.5, 0.2],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Number.POSITIVE_INFINITY,
-                  delay: i * 0.2,
-                  ease: "linear",
-                }}
+                animate={
+                  !isMobile
+                    ? {
+                        opacity: [0.2, 0.5, 0.2],
+                      }
+                    : {}
+                }
+                transition={
+                  !isMobile
+                    ? {
+                        duration: 2,
+                        repeat: Number.POSITIVE_INFINITY,
+                        delay: i * 0.2,
+                        ease: "linear",
+                      }
+                    : {}
+                }
               />
             ))}
           </div>
@@ -173,72 +205,59 @@ export function AboutOmdah() {
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
         className="absolute bottom-4 md:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
       >
-        <motion.div
-          className="relative"
-          animate={{ opacity: [0.7, 1, 0.7] }}
-          transition={{
-            duration: 2.5,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
-        >
-          <span className="text-xs font-kufam text-white/80 tracking-[0.2em] uppercase">
-            Scroll
-          </span>
-          <div className="absolute -bottom-1 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-        </motion.div>
-
-        <div className="relative w-6 h-10 border border-white/40 rounded-full overflow-hidden backdrop-blur-sm">
-          <div className="absolute inset-0 bg-white/5" />
-
-          <motion.div
-            className="absolute top-1 left-1/2 w-1 h-3 bg-white rounded-full -translate-x-1/2"
-            animate={{
-              y: [0, 20, 0],
-              opacity: [0.8, 1, 0.8],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
-            }}
-          />
-
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)",
-            }}
-            animate={{
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
-            }}
-          />
-        </div>
-
-        <div className="flex gap-1">
-          {[0, 1, 2].map((i) => (
+        {!isMobile && (
+          <>
             <motion.div
-              key={i}
-              className="w-1 h-1 bg-white/40 rounded-full"
-              animate={{
-                opacity: [0.4, 1, 0.4],
-                scale: [0.8, 1.2, 0.8],
-              }}
+              className="relative"
+              animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{
-                duration: 1.5,
+                duration: 2.5,
                 repeat: Number.POSITIVE_INFINITY,
                 ease: "easeInOut",
-                delay: i * 0.2,
               }}
-            />
-          ))}
-        </div>
+            >
+              <span className="text-xs font-kufam text-white/80 tracking-[0.2em] uppercase">
+                Scroll
+              </span>
+              <div className="absolute -bottom-1 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+            </motion.div>
+
+            <div className="relative w-6 h-10 border border-white/40 rounded-full overflow-hidden">
+              <div className="absolute inset-0 bg-white/5" />
+
+              <motion.div
+                className="absolute top-1 left-1/2 w-1 h-3 bg-white rounded-full -translate-x-1/2"
+                animate={{
+                  y: [0, 20, 0],
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Number.POSITIVE_INFINITY,
+                  ease: "easeInOut",
+                }}
+              />
+            </div>
+
+            <div className="flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-1 h-1 bg-white/40 rounded-full"
+                  animate={{
+                    opacity: [0.4, 1, 0.4],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </motion.div>
     </motion.section>
   );
