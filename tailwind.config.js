@@ -10,6 +10,9 @@ module.exports = {
       fontFamily: {
         kufam: ["var(--font-kufam)", "sans-serif"],
       },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+      },
     },
   },
   plugins: [],

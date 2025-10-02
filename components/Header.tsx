@@ -8,7 +8,9 @@ import { useState, useEffect } from "react";
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isInServices, setIsInServices] = useState(false);
   const { scrollY } = useScroll();
+
   const backgroundColor = useTransform(
     scrollY,
     [0, 100],
@@ -18,7 +20,16 @@ export function Header() {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
+
+      // Check if we're in the services section
+      const servicesSection = document.getElementById("services");
+      if (servicesSection) {
+        const rect = servicesSection.getBoundingClientRect();
+        const isInView = rect.top <= 100 && rect.bottom >= 100;
+        setIsInServices(isInView);
+      }
     };
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -33,9 +44,11 @@ export function Header() {
   return (
     <>
       <motion.nav
-        style={{ backgroundColor }}
+        style={{
+          backgroundColor: isInServices ? "rgba(0, 0, 0, 1)" : backgroundColor,
+        }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "border-b border-gray-200 shadow-sm" : ""
+          isScrolled ? "shadow-sm" : ""
         }`}
       >
         <div className="container mx-auto px-6 lg:px-12">
@@ -51,11 +64,19 @@ export function Header() {
                 <div key={item.name} className="relative group">
                   <Link
                     href={item.href}
-                    className="relative text-base font-kufam font-medium tracking-wide text-gray-800 hover:text-black transition-all duration-300 block transform group-hover:-translate-y-0.5"
+                    className={`relative text-base font-kufam font-medium tracking-wide transition-all duration-300 block transform group-hover:-translate-y-0.5 ${
+                      isInServices
+                        ? "text-white hover:text-gray-300"
+                        : "text-gray-800 hover:text-black"
+                    }`}
                   >
                     {item.name}
                   </Link>
-                  <div className="absolute -bottom-1 right-0 w-full h-0.5 bg-black origin-right transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
+                  <div
+                    className={`absolute -bottom-1 right-0 w-full h-0.5 origin-right transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100 ${
+                      isInServices ? "bg-white" : "bg-black"
+                    }`}
+                  />
                 </div>
               ))}
             </motion.div>
@@ -68,15 +89,27 @@ export function Header() {
                 transition={{ duration: 0.6 }}
                 className="relative"
               >
-                <Image
-                  src="/icons/Omdah.svg"
-                  alt="Omdah Logo"
-                  width={120}
-                  height={40}
-                  className="h-24 w-auto"
-                />
+                {isInServices ? (
+                  <Image
+                    src="/icons/WhiteLogo.svg"
+                    alt="Omdah Logo"
+                    width={120}
+                    height={40}
+                    className="h-18 w-auto"
+                  />
+                ) : (
+                  <Image
+                    src="/icons/BlackLogo.svg"
+                    alt="Omdah Logo"
+                    width={120}
+                    height={40}
+                    className="h-18 w-auto"
+                  />
+                )}
                 <motion.div
-                  className="absolute -bottom-1 right-0 h-0.5 bg-black"
+                  className={`absolute -bottom-1 right-0 h-0.5 ${
+                    isInServices ? "bg-white" : "bg-black"
+                  }`}
                   initial={{ width: 0 }}
                   whileHover={{ width: "100%" }}
                   transition={{ duration: 0.3 }}
@@ -98,7 +131,7 @@ export function Header() {
                 alt="Menu"
                 width={24}
                 height={24}
-                className="w-6 h-6"
+                className={`w-6 h-6 ${isInServices ? "invert" : ""}`}
               />
             </motion.button>
           </div>
@@ -112,7 +145,9 @@ export function Header() {
           x: isOpen ? 0 : "100%",
         }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="fixed inset-0 z-40 bg-black md:hidden"
+        className={`fixed inset-0 z-40 md:hidden ${
+          isInServices ? "bg-white" : "bg-black"
+        }`}
       >
         <div className="flex flex-col items-center justify-center h-full gap-8 px-6">
           {navItems.map((item, index) => (
@@ -128,7 +163,11 @@ export function Header() {
               <Link
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className="text-3xl font-kufam font-bold tracking-tighter hover:text-white/60 transition-colors"
+                className={`text-3xl font-kufam font-bold tracking-tighter transition-colors ${
+                  isInServices
+                    ? "text-black hover:text-gray-600"
+                    : "text-white hover:text-white/60"
+                }`}
               >
                 {item.name}
               </Link>
