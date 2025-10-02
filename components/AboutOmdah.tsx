@@ -35,35 +35,15 @@ export function AboutOmdah() {
 
         {mounted && (
           <>
-            <motion.div
+            <div
               className="absolute w-[500px] h-[500px] rounded-full bg-white/5 blur-[100px]"
-              animate={{
-                x: ["-25%", "25%"],
-                y: ["-25%", "25%"],
-              }}
-              transition={{
-                duration: 15,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatType: "reverse",
-                ease: "easeInOut",
-              }}
               style={{
                 left: "20%",
                 top: "20%",
               }}
             />
-            <motion.div
+            <div
               className="absolute w-[300px] h-[300px] rounded-full bg-white/5 blur-[80px]"
-              animate={{
-                x: ["25%", "-25%"],
-                y: ["25%", "-25%"],
-              }}
-              transition={{
-                duration: 12,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatType: "reverse",
-                ease: "easeInOut",
-              }}
               style={{
                 right: "20%",
                 bottom: "20%",
@@ -74,13 +54,13 @@ export function AboutOmdah() {
 
         {mounted && (
           <>
-            {[...Array(3)].map((_, i) => (
+            {[...Array(2)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute border border-white/10"
                 style={{
-                  width: 200 + i * 200,
-                  height: 200 + i * 200,
+                  width: 300 + i * 200,
+                  height: 300 + i * 200,
                   left: "50%",
                   top: "50%",
                   x: "-50%",
@@ -89,10 +69,9 @@ export function AboutOmdah() {
                 }}
                 animate={{
                   rotate: [i * 15, i * 15 + 360],
-                  scale: [1, 1.1, 1],
                 }}
                 transition={{
-                  duration: 20 + i * 5,
+                  duration: 30,
                   repeat: Number.POSITIVE_INFINITY,
                   ease: "linear",
                 }}
@@ -103,23 +82,22 @@ export function AboutOmdah() {
 
         {mounted && (
           <div className="absolute inset-0">
-            {[...Array(20)].map((_, i) => (
+            {[...Array(8)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute w-1 h-1 bg-white/20"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
+                  left: `${i * 25 + Math.random() * 10}%`,
+                  top: `${i * 12 + Math.random() * 10}%`,
                 }}
                 animate={{
-                  opacity: [0, 1, 0],
-                  scale: [0, 1, 0],
+                  opacity: [0.2, 0.5, 0.2],
                 }}
                 transition={{
-                  duration: 3 + Math.random() * 2,
+                  duration: 2,
                   repeat: Number.POSITIVE_INFINITY,
-                  delay: Math.random() * 2,
-                  ease: "easeInOut",
+                  delay: i * 0.2,
+                  ease: "linear",
                 }}
               />
             ))}

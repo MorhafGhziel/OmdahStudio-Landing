@@ -150,20 +150,14 @@ function ServiceItem({ service, isActive, onClick }: ServiceItemProps) {
   return (
     <motion.div
       onClick={onClick}
-      className="relative cursor-pointer overflow-hidden rounded-2xl bg-zinc-800/50 backdrop-blur-sm border border-white/10"
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.3 }}
+      className="relative cursor-pointer overflow-hidden rounded-2xl bg-zinc-800/50 border border-white/10"
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.2 }}
     >
       <div className="p-6 md:p-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <motion.div
-              className="text-4xl md:text-5xl"
-              animate={{ scale: isActive ? 1.1 : 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              {service.icon}
-            </motion.div>
+            <div className="text-4xl md:text-5xl">{service.icon}</div>
 
             <div>
               <div className="flex items-center gap-3 mb-2">
@@ -201,14 +195,10 @@ function ServiceItem({ service, isActive, onClick }: ServiceItemProps) {
           </motion.div>
         </div>
 
-        <motion.div
-          initial={false}
-          animate={{
-            height: isActive ? "auto" : 0,
-            opacity: isActive ? 1 : 0,
-          }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden"
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            isActive ? "max-h-[200px] opacity-100" : "max-h-0 opacity-0"
+          }`}
         >
           <div className="pt-6 border-t border-white/10 mt-6">
             <p className="text-white/70 font-kufam text-lg leading-relaxed">
@@ -228,7 +218,7 @@ function ServiceItem({ service, isActive, onClick }: ServiceItemProps) {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </motion.div>
   );
