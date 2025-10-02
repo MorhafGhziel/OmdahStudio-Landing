@@ -1,75 +1,84 @@
 "use client";
 
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
+import Image from "next/image";
 import { useRef, useState } from "react";
 
 interface ServiceType {
-  number: string;
+  id: string;
   title: string;
+  category: string;
   description: string;
-  tags: string[];
-  icon: string;
+  image: string;
 }
 
 const services: ServiceType[] = [
   {
-    number: "01",
-    title: "فيديوهات اعلانية",
-    description: "إنتاج عالي ومتوسط المستوى يناسب احتياجات مشروعك",
-    tags: ["إنتاج عالي", "إنتاج متوسط", "تصوير احترافي"],
-    icon: "📹",
-  },
-  {
-    number: "02",
+    id: "01",
     title: "حملات ترويجية",
+    category: "تسويق",
     description: "تخطيط وتنفيذ حملات تسويقية متكاملة تحقق أهداف عملك",
-    tags: ["استراتيجية تسويق", "إدارة حملات", "تحليل النتائج"],
-    icon: "🎯",
+    image: "/images/Service1.png",
   },
   {
-    number: "03",
+    id: "02",
     title: "تصوير منتجات",
+    category: "تصوير",
     description: "تصوير احترافي يظهر منتجاتك بأفضل شكل ممكن",
-    tags: ["تصوير منتجات", "إضاءة احترافية", "معالجة الصور"],
-    icon: "📸",
+    image: "/images/Service1.png",
   },
   {
-    number: "04",
+    id: "03",
     title: "تغطيات",
+    category: "توثيق",
     description: "تغطية شاملة للفعاليات والمناسبات بأعلى جودة",
-    tags: ["فعاليات", "مناسبات", "توثيق"],
-    icon: "🎥",
+    image: "/images/Service1.png",
   },
   {
-    number: "05",
+    id: "04",
     title: "كتابة محتوى",
+    category: "محتوى",
     description: "محتوى إبداعي يعبر عن هوية علامتك التجارية",
-    tags: ["نصوص إعلانية", "سيناريو", "وصف منتجات"],
-    icon: "✍️",
+    image: "/images/Service1.png",
   },
   {
-    number: "06",
+    id: "05",
     title: "تصميم ثلاثي الأبعاد",
-    description: "تصاميم 3D احترافية تضيف عمقاً لمشروعك",
-    tags: ["نمذجة", "حركة", "واقع افتراضي"],
-    icon: "🎨",
+    category: "3D",
+    description: "تصاميم ثلاثية الأبعاد احترافية تضيف عمقاً لمشروعك",
+    image: "/images/Service1.png",
   },
   {
-    number: "07",
+    id: "06",
     title: "موشن جرافيك",
+    category: "حركة",
     description: "رسوم متحركة تجذب الانتباه وتوصل رسالتك بفعالية",
-    tags: ["انيميشن", "مؤثرات بصرية", "فيديو تفاعلي"],
-    icon: "✨",
+    image: "/images/Service1.png",
   },
 ];
+
+// Group services into pairs
+const serviceRows = services.reduce<ServiceType[][]>((acc, service, index) => {
+  if (index % 2 === 0) {
+    acc.push([service]);
+  } else {
+    acc[acc.length - 1].push(service);
+  }
+  return acc;
+}, []);
 
 export function Services() {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (
-    <section id="services" ref={ref} className="py-32 bg-white text-black">
+    <section
+      id="services"
+      ref={ref}
+      className="py-32 bg-white text-black min-h-screen"
+    >
       <div className="container mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -77,22 +86,55 @@ export function Services() {
           transition={{ duration: 0.8 }}
           className="mb-20 text-right"
         >
-          <p className="text-sm font-kufam tracking-widest text-black/40 mb-4">
+          <motion.p
+            initial={{ opacity: 0, x: -20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-sm font-kufam tracking-widest text-black/40 mb-4"
+          >
             خدماتنا
-          </p>
-          <h2 className="text-6xl md:text-8xl font-kufam font-bold tracking-tight">
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, x: -30 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-6xl md:text-8xl font-kufam font-bold"
+          >
             ما نقدمه لكم
-          </h2>
+          </motion.h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <ServiceCard
-              key={service.number}
-              service={service}
-              index={index}
-              isInView={isInView}
-            />
+        <div className="space-y-8">
+          {serviceRows.map((row, rowIndex) => (
+            <div key={rowIndex} className="flex gap-8">
+              {row.map((service, index) => (
+                <motion.div
+                  key={service.id}
+                  className="w-1/2"
+                  animate={{
+                    width:
+                      hoveredId === service.id
+                        ? "55%"
+                        : hoveredId === row[index === 0 ? 1 : 0]?.id
+                        ? "45%"
+                        : "50%",
+                  }}
+                  transition={{
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                >
+                  <ServiceCard
+                    service={service}
+                    isHovered={hoveredId === service.id}
+                    onHover={() => setHoveredId(service.id)}
+                    onLeave={() => setHoveredId(null)}
+                    isInView={isInView}
+                    index={rowIndex * 2 + index}
+                  />
+                </motion.div>
+              ))}
+            </div>
           ))}
         </div>
       </div>
@@ -102,111 +144,112 @@ export function Services() {
 
 interface ServiceCardProps {
   service: ServiceType;
-  index: number;
+  isHovered: boolean;
+  onHover: () => void;
+  onLeave: () => void;
   isInView: boolean;
+  index: number;
 }
 
-function ServiceCard({ service, index, isInView }: ServiceCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const springConfig = { damping: 25, stiffness: 200 };
-  const x = useSpring(mouseX, springConfig);
-  const y = useSpring(mouseY, springConfig);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetX = (e.clientX - rect.left - rect.width / 2) * 0.2;
-    const offsetY = (e.clientY - rect.top - rect.height / 2) * 0.2;
-    mouseX.set(offsetX);
-    mouseY.set(offsetY);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-    setIsHovered(false);
-  };
-
+function ServiceCard({
+  service,
+  isHovered,
+  onHover,
+  onLeave,
+  index,
+}: ServiceCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: 0.8,
-        delay: index * 0.15,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      style={{ x, y }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      className="group relative cursor-pointer"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      className="relative group cursor-pointer overflow-hidden rounded-lg h-[400px]"
     >
-      {/* Black Overlay */}
-      <motion.div
-        className="absolute inset-0 bg-black"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isHovered ? 1 : 0 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      />
+      <div className="relative w-full h-full overflow-hidden">
+        <Image
+          src={service.image}
+          alt={service.title}
+          fill
+          className="object-cover transition-all duration-700"
+          style={{
+            filter: isHovered ? "blur(0)" : "blur(2px)",
+            transform: isHovered ? "scale(1.05)" : "scale(1)",
+          }}
+        />
 
-      <div className="relative p-10 border border-black/10 group-hover:border-white/20 transition-colors backdrop-blur-[2px]">
+        {/* Overlay with gradient */}
         <motion.div
-          animate={{
-            scale: isHovered ? 1.1 : 1,
-            opacity: isHovered ? 0.15 : 0.05,
-            color: isHovered ? "#fff" : "#000",
-          }}
-          transition={{ duration: 0.4 }}
-          className="text-8xl font-kufam font-bold mb-6"
-        >
-          {service.number}
-        </motion.div>
-
-        <div className="flex items-center justify-end gap-4 mb-6">
-          <motion.h3
-            animate={{ color: isHovered ? "#fff" : "#000" }}
-            transition={{ duration: 0.3 }}
-            className="text-3xl font-kufam font-bold"
-          >
-            {service.title}
-          </motion.h3>
-          <span className="text-3xl">{service.icon}</span>
-        </div>
-
-        <motion.p
-          animate={{
-            color: isHovered ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.6)",
-          }}
+          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0.3 }}
           transition={{ duration: 0.3 }}
-          className="mb-8 leading-relaxed font-kufam text-right"
-        >
-          {service.description}
-        </motion.p>
+        />
 
-        <div className="flex flex-wrap gap-2 justify-end">
-          {service.tags.map((tag, tagIndex) => (
-            <motion.span
-              key={tag}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{
-                duration: 0.4,
-                delay: index * 0.15 + tagIndex * 0.05,
+        {/* Content Container */}
+        <div className="absolute inset-0 p-8 flex flex-col justify-end">
+          {/* Category */}
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{
+              opacity: isHovered ? 1 : 0.7,
+              y: isHovered ? 0 : 10,
+            }}
+            transition={{ duration: 0.4 }}
+            className="text-sm font-kufam text-white/80 mb-2"
+          >
+            {service.category}
+          </motion.p>
+
+          {/* Title */}
+          <h3 className="text-2xl font-kufam font-bold text-white mb-4 relative">
+            <span className="relative inline-block transition-all duration-300">
+              {service.title}
+            </span>
+          </h3>
+
+          {/* Description and Tags */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{
+              opacity: isHovered ? 1 : 0,
+              y: isHovered ? 0 : 20,
+            }}
+            transition={{ duration: 0.4 }}
+            className="space-y-4"
+          >
+            <p className="text-white/90 font-kufam">{service.description}</p>
+
+            <div className="flex flex-wrap gap-2">
+              {["جودة عالية", "تسليم سريع", "دعم مستمر"].map((tag, i) => (
+                <motion.span
+                  key={tag}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{
+                    opacity: isHovered ? 1 : 0,
+                    scale: isHovered ? 1 : 0.8,
+                  }}
+                  transition={{ duration: 0.3, delay: isHovered ? i * 0.1 : 0 }}
+                  className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-kufam text-white/90"
+                >
+                  {tag}
+                </motion.span>
+              ))}
+            </div>
+
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{
+                opacity: isHovered ? 1 : 0,
+                y: isHovered ? 0 : 20,
               }}
-              whileHover={{ scale: 1.05, y: -2 }}
-              className="px-4 py-2 text-sm border font-kufam transition-colors"
-              style={{
-                borderColor: isHovered
-                  ? "rgba(255,255,255,0.3)"
-                  : "rgba(0,0,0,0.2)",
-                color: isHovered ? "#fff" : "#000",
-              }}
+              transition={{ duration: 0.4 }}
+              className="mt-4 px-6 py-2 bg-white text-black font-kufam rounded-full hover:bg-white/90 transition-colors"
             >
-              {tag}
-            </motion.span>
-          ))}
+              اطلب الخدمة
+            </motion.button>
+          </motion.div>
         </div>
       </div>
     </motion.div>
