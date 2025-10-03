@@ -69,13 +69,13 @@ export function Services() {
   return (
     <section
       id="services"
-      className="py-20 md:py-32 bg-black text-white relative overflow-hidden"
+      className="py-16 sm:py-20 md:py-32 bg-black text-white relative overflow-hidden"
     >
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Center glowing circle */}
         <motion.div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px]"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[140vw] sm:w-[120vw] md:w-[1200px] h-[140vw] sm:h-[120vw] md:h-[1200px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
@@ -101,8 +101,8 @@ export function Services() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 max-w-7xl relative">
-        <div className="text-center mb-20">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-7xl relative">
+        <div className="text-center mb-12 sm:mb-16 md:mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -110,7 +110,7 @@ export function Services() {
             transition={{ duration: 0.6 }}
             className="inline-block"
           >
-            <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-sm font-ibm-plex-sans-arabic text-white/90">
+            <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90">
               خدماتنا
             </span>
           </motion.div>
@@ -120,7 +120,7 @@ export function Services() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-6xl font-ibm-plex-sans-arabic font-bold mt-6 mb-4 text-white"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold mt-4 sm:mt-6 mb-3 sm:mb-4 text-white"
           >
             ما نقدمه لكم
           </motion.h2>
@@ -130,13 +130,13 @@ export function Services() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-white/60 max-w-2xl mx-auto font-ibm-plex-sans-arabic"
+            className="text-base sm:text-lg text-white/60 max-w-[90%] sm:max-w-2xl mx-auto font-ibm-plex-sans-arabic"
           >
             حلول إبداعية متكاملة تواكب احتياجاتك وتتجاوز توقعاتك
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
           {services.map((service, index) => (
             <motion.div
               key={service.id}
@@ -155,44 +155,46 @@ export function Services() {
             >
               <div
                 className={`
-                group/card relative p-6 rounded-2xl backdrop-blur-sm
+                group/card relative p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl backdrop-blur-sm
                 border border-white/10 h-full
                 transition-all duration-500 ease-out
                 ${hoveredService === service.id ? "bg-white/10" : "bg-white/5"}
                 ${selectedService === service.id ? "bg-white/15" : ""}
                 hover:border-white/20 hover:scale-[1.02]
                 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.2)]
+                sm:hover:shadow-[0_0_35px_-5px_rgba(255,255,255,0.15)]
+                md:hover:shadow-[0_0_40px_-5px_rgba(255,255,255,0.2)]
                 hover:bg-gradient-to-b hover:from-white/10 hover:to-transparent
                 before:absolute before:inset-[1px] before:rounded-xl before:bg-gradient-to-b before:from-white/10 before:to-transparent before:opacity-0 before:transition-opacity before:duration-500
                 hover:before:opacity-100
               `}
               >
                 {/* Service Header */}
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4 sm:mb-5 md:mb-6">
                   <div>
-                    <span className="inline-block px-3 py-1 text-xs font-ibm-plex-sans-arabic bg-white/10 rounded-full text-white/80 mb-3">
+                    <span className="inline-block px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-ibm-plex-sans-arabic bg-white/10 rounded-full text-white/80 mb-2 sm:mb-3">
                       {service.category}
                     </span>
-                    <h3 className="text-xl font-ibm-plex-sans-arabic font-bold text-white">
+                    <h3 className="text-lg sm:text-xl font-ibm-plex-sans-arabic font-bold text-white">
                       {service.title}
                     </h3>
                   </div>
-                  <span className="text-white/50 font-ibm-plex-sans-arabic">
+                  <span className="text-sm sm:text-base text-white/50 font-ibm-plex-sans-arabic">
                     {service.id}
                   </span>
                 </div>
 
                 {/* Service Description */}
-                <p className="text-white/70 font-ibm-plex-sans-arabic text-sm mb-6 line-clamp-3">
+                <p className="text-white/70 font-ibm-plex-sans-arabic text-xs sm:text-sm mb-4 sm:mb-5 md:mb-6 line-clamp-3">
                   {service.description}
                 </p>
 
                 {/* Features */}
-                <div className="flex flex-wrap gap-2 mt-auto">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-auto">
                   {service.features.map((feature) => (
                     <span
                       key={feature}
-                      className="px-3 py-1 text-sm font-ibm-plex-sans-arabic bg-white/5 rounded-full text-white/60"
+                      className="px-2.5 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-ibm-plex-sans-arabic bg-white/5 rounded-full text-white/60"
                     >
                       {feature}
                     </span>
@@ -223,11 +225,12 @@ export function Services() {
         >
           <button
             className="
-            px-8 py-4 font-ibm-plex-sans-arabic font-semibold rounded-full
+            px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-ibm-plex-sans-arabic font-semibold rounded-full
             bg-white text-black
             hover:bg-white/90
             transition-all duration-300 transform hover:scale-105
             shadow-lg hover:shadow-xl
+            active:scale-95
           "
           >
             تواصل معنا الآن
