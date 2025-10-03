@@ -33,10 +33,10 @@ export function Header() {
   };
 
   const navItems = [
+    { name: "اتصل بنا", href: "#contact" },
     { name: "أعمالنا", href: "#work" },
     { name: "خدماتنا", href: "#services" },
     { name: "من نحن", href: "#about" },
-    { name: "اتصل بنا", href: "#contact" },
   ];
 
   return (
