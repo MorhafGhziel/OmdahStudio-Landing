@@ -60,7 +60,7 @@ export function Header() {
                 <div key={item.name} className="relative group">
                   <button
                     onClick={() => handleSmoothScroll(item.href)}
-                    className="relative text-base font-kufam font-medium tracking-wide transition-all duration-300 block transform group-hover:-translate-y-0.5 text-white hover:text-gray-300 cursor-pointer"
+                    className="relative text-base font-ibm-plex-sans-arabic font-medium tracking-wide transition-all duration-300 block transform group-hover:-translate-y-0.5 text-white hover:text-gray-300 cursor-pointer"
                   >
                     {item.name}
                   </button>
@@ -136,7 +136,7 @@ export function Header() {
                   handleSmoothScroll(item.href);
                   setIsOpen(false);
                 }}
-                className="text-3xl font-kufam font-bold tracking-tighter transition-colors text-white hover:text-white/60 cursor-pointer"
+                className="text-3xl font-ibm-plex-sans-arabic font-bold tracking-tighter transition-colors text-white hover:text-white/60 cursor-pointer"
               >
                 {item.name}
               </button>

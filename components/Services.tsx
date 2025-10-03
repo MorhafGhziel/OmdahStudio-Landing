@@ -73,7 +73,9 @@ export function Services() {
             transition={{ duration: 0.6 }}
             className="inline-block px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-4"
           >
-            <span className="text-sm font-kufam text-white/80">خدماتنا</span>
+            <span className="text-sm font-ibm-plex-sans-arabic text-white/80">
+              خدماتنا
+            </span>
           </motion.div>
 
           <motion.h2
@@ -81,7 +83,7 @@ export function Services() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-6xl font-kufam font-bold text-white mb-6"
+            className="text-4xl md:text-6xl font-ibm-plex-sans-arabic font-bold text-white mb-6"
           >
             ما نقدمه لكم
           </motion.h2>
@@ -131,7 +133,7 @@ export function Services() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-16"
         >
-          <button className="px-8 py-4 bg-white text-black font-kufam font-semibold rounded-full hover:bg-white/90 transition-colors duration-300">
+          <button className="px-8 py-4 bg-white text-black font-ibm-plex-sans-arabic font-semibold rounded-full hover:bg-white/90 transition-colors duration-300">
             العمدة معك{" "}
           </button>
         </motion.div>
@@ -161,14 +163,14 @@ function ServiceItem({ service, isActive, onClick }: ServiceItemProps) {
 
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm font-kufam text-white/50">
+                <span className="text-sm font-ibm-plex-sans-arabic text-white/50">
                   {service.id}
                 </span>
-                <span className="px-3 py-1 text-xs font-kufam bg-white/10 rounded-full text-white/80">
+                <span className="px-3 py-1 text-xs font-ibm-plex-sans-arabic bg-white/10 rounded-full text-white/80">
                   {service.category}
                 </span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-kufam font-bold text-white">
+              <h3 className="text-2xl md:text-3xl font-ibm-plex-sans-arabic font-bold text-white">
                 {service.title}
               </h3>
             </div>
@@ -201,7 +203,7 @@ function ServiceItem({ service, isActive, onClick }: ServiceItemProps) {
           }`}
         >
           <div className="pt-6 border-t border-white/10 mt-6">
-            <p className="text-white/70 font-kufam text-lg leading-relaxed">
+            <p className="text-white/70 font-ibm-plex-sans-arabic text-lg leading-relaxed">
               {service.description}
             </p>
 
@@ -210,7 +212,7 @@ function ServiceItem({ service, isActive, onClick }: ServiceItemProps) {
                 {["جودة عالية", "تسليم سريع", "دعم مستمر"].map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 text-sm font-kufam bg-white/10 rounded-full text-white/80"
+                    className="px-3 py-1 text-sm font-ibm-plex-sans-arabic bg-white/10 rounded-full text-white/80"
                   >
                     {tag}
                   </span>

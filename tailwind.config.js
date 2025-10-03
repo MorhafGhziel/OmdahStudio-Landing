@@ -8,7 +8,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        kufam: ["var(--font-kufam)", "sans-serif"],
+        "ibm-plex-sans-arabic": [
+          "var(--font-ibm-plex-sans-arabic)",
+          "sans-serif",
+        ],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

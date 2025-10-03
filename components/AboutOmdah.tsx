@@ -140,7 +140,7 @@ export function AboutOmdah() {
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-6xl mx-auto text-center">
           <motion.h1
-            className="text-6xl md:text-7xl font-bold mb-8 font-kufam"
+            className="text-6xl md:text-7xl font-bold mb-8 font-ibm-plex-sans-arabic"
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={{ once: true, margin: "-50px" }}
@@ -154,7 +154,7 @@ export function AboutOmdah() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-            className="text-2xl md:text-3xl font-kufam mb-8 text-white"
+            className="text-2xl md:text-3xl font-ibm-plex-sans-arabic mb-8 text-white"
           >
             ما يعتمد عليه مشروعك
           </motion.div>
@@ -164,7 +164,7 @@ export function AboutOmdah() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed font-kufam"
+            className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed font-ibm-plex-sans-arabic"
             dir="rtl"
           >
             شركة سعودية، نشتغل على المحتوى المرئي. نشتغل ببساطة، والبساطة هي
@@ -190,7 +190,7 @@ export function AboutOmdah() {
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-12 py-4 bg-white text-black font-kufam text-xl hover:bg-white/90 transition-all cursor-pointer"
+              className="px-12 py-4 bg-white text-black font-ibm-plex-sans-arabic text-xl hover:bg-white/90 transition-all cursor-pointer"
             >
               اكتشف خدماتنا
             </motion.button>
@@ -216,7 +216,7 @@ export function AboutOmdah() {
                 ease: "easeInOut",
               }}
             >
-              <span className="text-xs font-kufam text-white/80 tracking-[0.2em] uppercase">
+              <span className="text-xs font-ibm-plex-sans-arabic text-white/80 tracking-[0.2em] uppercase">
                 Scroll
               </span>
               <div className="absolute -bottom-1 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />

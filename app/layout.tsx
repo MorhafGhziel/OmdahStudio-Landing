@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Kufam } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "@/components/Header";
 
@@ -13,10 +14,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const kufam = Kufam({
-  subsets: ["arabic"],
-  weight: ["400", "700", "900"],
-  variable: "--font-kufam",
+const ibmPlexSansArabic = localFont({
+  src: "../public/fonts/IBMPlexSansArabic-SemiBold.ttf",
+  variable: "--font-ibm-plex-sans-arabic",
+  weight: "600",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="ar">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${kufam.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${ibmPlexSansArabic.variable} antialiased`}
       >
         <Header />
         {children}
