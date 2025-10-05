@@ -77,11 +77,11 @@ export function Header() {
                 className="relative"
               >
                 <Image
-                  src="/icons/WhiteLogo.svg"
+                  src="/icons/logo_white_v2.svg"
                   alt="Omdah Logo"
                   width={120}
                   height={40}
-                  className="h-18 w-auto"
+                  className="h-26 w-auto"
                 />
                 <motion.div
                   className="absolute -bottom-1 right-0 h-0.5 bg-white"

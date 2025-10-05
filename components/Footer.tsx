@@ -9,7 +9,7 @@ export const Footer = () => {
           {/* Logo Section */}
           <div className="flex flex-col items-center md:items-start w-full md:w-auto">
             <Image
-              src="/icons/WhiteLogo.svg"
+              src="/icons/logo_white_v2.svg"
               alt="Omdah Logo"
               width={100}
               height={33}
