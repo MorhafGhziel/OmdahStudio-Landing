@@ -1,8 +1,7 @@
 "use client";
 
-import { motion, useAnimationControls } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
 
 const clients = [
   {
@@ -45,91 +44,37 @@ const clients = [
     name: "Unknown Room",
     logo: "/images/Unknown-Room.png",
   },
+  {
+    name: "Client 1",
+    logo: "/images/f2c8e19a-b510-4653-89f4-3ab306ed9139_removalai_preview.png",
+  },
+  {
+    name: "Client 2",
+    logo: "/images/e26e1692-ae63-482a-8ab0-0c34c917cc43_removalai_preview.png",
+  },
+  {
+    name: "Client 3",
+    logo: "/images/9d1be18b-4426-469d-9076-67e22731bd92_removalai_preview.png",
+  },
+  {
+    name: "Client 4",
+    logo: "/images/mylk.png",
+  },
+  {
+    name: "Client 5",
+    logo: "/images/09191da8-fe58-4854-8891-c19ea6d9ce30_removalai_preview.png",
+  },
+  {
+    name: "Client 6",
+    logo: "/images/02254bd4-0bd2-40c6-ab3d-45fc52844914_removalai_preview.png",
+  },
 ];
 
-// Split clients into two rows for better distribution
-const row1 = [...clients.slice(0, 6), ...clients.slice(0, 6)];
-const row2 = [...clients.slice(6), ...clients.slice(6)];
+// Split clients into two rows - first 8 in row1, remaining 8 in row2
+const row1 = [...clients.slice(0, 8), ...clients.slice(0, 8)];
+const row2 = [...clients.slice(8), ...clients.slice(8)];
 
 export function Clients() {
-  const [isHovered, setIsHovered] = useState(false);
-  const row1Controls = useAnimationControls();
-  const row2Controls = useAnimationControls();
-  const row1Ref = useRef<HTMLDivElement>(null);
-  const row2Ref = useRef<HTMLDivElement>(null);
-  const [row1Position, setRow1Position] = useState(0);
-  const [row2Position, setRow2Position] = useState(-100);
-
-  useEffect(() => {
-    const startAnimations = () => {
-      row1Controls.start({
-        x: [`${row1Position}%`, "-100%"],
-        transition: {
-          duration: 25,
-          repeat: Infinity,
-          ease: "linear",
-        },
-      });
-      row2Controls.start({
-        x: [`${row2Position}%`, "0%"],
-        transition: {
-          duration: 25,
-          repeat: Infinity,
-          ease: "linear",
-        },
-      });
-    };
-
-    startAnimations();
-  }, []);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    row1Controls.stop();
-    row2Controls.stop();
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-
-    // Get current position and continue from there
-    if (row1Ref.current) {
-      const currentX = row1Ref.current.style.transform.match(
-        /translateX\(([^)]+)\)/
-      );
-      if (currentX) {
-        const currentPosition = parseFloat(currentX[1].replace("%", ""));
-        setRow1Position(currentPosition);
-        row1Controls.start({
-          x: [`${currentPosition}%`, "-100%"],
-          transition: {
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear",
-          },
-        });
-      }
-    }
-
-    if (row2Ref.current) {
-      const currentX = row2Ref.current.style.transform.match(
-        /translateX\(([^)]+)\)/
-      );
-      if (currentX) {
-        const currentPosition = parseFloat(currentX[1].replace("%", ""));
-        setRow2Position(currentPosition);
-        row2Controls.start({
-          x: [`${currentPosition}%`, "0%"],
-          transition: {
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear",
-          },
-        });
-      }
-    }
-  };
-
   return (
     <section
       id="clients"
@@ -147,19 +92,23 @@ export function Clients() {
         </div>
 
         {/* Clients Rows */}
-        <div
-          className="space-y-8 sm:space-y-12 md:space-y-16 overflow-hidden"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
+        <div className="space-y-8 sm:space-y-12 md:space-y-16 overflow-hidden">
           {/* Row 1 - Right to Left */}
           <div className="relative h-20 sm:h-24 md:h-28 lg:h-32">
             <motion.div
-              ref={row1Ref}
               className="flex items-center absolute"
-              animate={row1Controls}
+              animate={{
+                x: [0, -1600], // Fixed pixel distance
+              }}
+              transition={{
+                x: {
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear",
+                },
+              }}
               style={{
-                width: "200%",
+                width: "3200px", // Fixed width for consistent speed
               }}
             >
               <div className="flex items-center">
@@ -216,11 +165,19 @@ export function Clients() {
           {/* Row 2 - Left to Right */}
           <div className="relative h-20 sm:h-24 md:h-28 lg:h-32">
             <motion.div
-              ref={row2Ref}
               className="flex items-center absolute"
-              animate={row2Controls}
+              animate={{
+                x: [-1600, 0], // Fixed pixel distance
+              }}
+              transition={{
+                x: {
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear",
+                },
+              }}
               style={{
-                width: "200%",
+                width: "3200px", // Fixed width for consistent speed
               }}
             >
               <div className="flex items-center">
