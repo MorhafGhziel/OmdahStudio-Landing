@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
 
 const clients = [
   {
@@ -51,6 +52,84 @@ const row1 = [...clients.slice(0, 6), ...clients.slice(0, 6)];
 const row2 = [...clients.slice(6), ...clients.slice(6)];
 
 export function Clients() {
+  const [isHovered, setIsHovered] = useState(false);
+  const row1Controls = useAnimationControls();
+  const row2Controls = useAnimationControls();
+  const row1Ref = useRef<HTMLDivElement>(null);
+  const row2Ref = useRef<HTMLDivElement>(null);
+  const [row1Position, setRow1Position] = useState(0);
+  const [row2Position, setRow2Position] = useState(-100);
+
+  useEffect(() => {
+    const startAnimations = () => {
+      row1Controls.start({
+        x: [`${row1Position}%`, "-100%"],
+        transition: {
+          duration: 25,
+          repeat: Infinity,
+          ease: "linear",
+        },
+      });
+      row2Controls.start({
+        x: [`${row2Position}%`, "0%"],
+        transition: {
+          duration: 25,
+          repeat: Infinity,
+          ease: "linear",
+        },
+      });
+    };
+
+    startAnimations();
+  }, []);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    row1Controls.stop();
+    row2Controls.stop();
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+
+    // Get current position and continue from there
+    if (row1Ref.current) {
+      const currentX = row1Ref.current.style.transform.match(
+        /translateX\(([^)]+)\)/
+      );
+      if (currentX) {
+        const currentPosition = parseFloat(currentX[1].replace("%", ""));
+        setRow1Position(currentPosition);
+        row1Controls.start({
+          x: [`${currentPosition}%`, "-100%"],
+          transition: {
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          },
+        });
+      }
+    }
+
+    if (row2Ref.current) {
+      const currentX = row2Ref.current.style.transform.match(
+        /translateX\(([^)]+)\)/
+      );
+      if (currentX) {
+        const currentPosition = parseFloat(currentX[1].replace("%", ""));
+        setRow2Position(currentPosition);
+        row2Controls.start({
+          x: [`${currentPosition}%`, "0%"],
+          transition: {
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          },
+        });
+      }
+    }
+  };
+
   return (
     <section
       id="clients"
@@ -68,30 +147,31 @@ export function Clients() {
         </div>
 
         {/* Clients Rows */}
-        <div className="space-y-8 sm:space-y-12 md:space-y-16 overflow-hidden">
+        <div
+          className="space-y-8 sm:space-y-12 md:space-y-16 overflow-hidden"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {/* Row 1 - Right to Left */}
           <div className="relative h-20 sm:h-24 md:h-28 lg:h-32">
             <motion.div
+              ref={row1Ref}
               className="flex items-center absolute"
-              animate={{
-                x: ["0%", "-100%"],
-              }}
-              transition={{
-                x: {
-                  duration: 25,
-                  repeat: Infinity,
-                  ease: "linear",
-                },
-              }}
+              animate={row1Controls}
               style={{
                 width: "200%",
               }}
             >
               <div className="flex items-center">
                 {row1.map((client, index) => (
-                  <div
+                  <motion.div
                     key={`${client.name}-${index}`}
                     className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    whileHover={{
+                      scale: 1.1,
+                      zIndex: 10,
+                      transition: { duration: 0.2 },
+                    }}
                   >
                     <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
@@ -103,14 +183,19 @@ export function Clients() {
                         />
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               <div className="flex items-center">
                 {row1.map((client, index) => (
-                  <div
+                  <motion.div
                     key={`${client.name}-${index}-duplicate`}
                     className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    whileHover={{
+                      scale: 1.1,
+                      zIndex: 10,
+                      transition: { duration: 0.2 },
+                    }}
                   >
                     <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
@@ -122,7 +207,7 @@ export function Clients() {
                         />
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -131,26 +216,23 @@ export function Clients() {
           {/* Row 2 - Left to Right */}
           <div className="relative h-20 sm:h-24 md:h-28 lg:h-32">
             <motion.div
+              ref={row2Ref}
               className="flex items-center absolute"
-              animate={{
-                x: ["-100%", "0%"],
-              }}
-              transition={{
-                x: {
-                  duration: 25,
-                  repeat: Infinity,
-                  ease: "linear",
-                },
-              }}
+              animate={row2Controls}
               style={{
                 width: "200%",
               }}
             >
               <div className="flex items-center">
                 {row2.map((client, index) => (
-                  <div
+                  <motion.div
                     key={`${client.name}-${index}`}
                     className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    whileHover={{
+                      scale: 1.1,
+                      zIndex: 10,
+                      transition: { duration: 0.2 },
+                    }}
                   >
                     <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
@@ -162,14 +244,19 @@ export function Clients() {
                         />
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               <div className="flex items-center">
                 {row2.map((client, index) => (
-                  <div
+                  <motion.div
                     key={`${client.name}-${index}-duplicate`}
                     className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    whileHover={{
+                      scale: 1.1,
+                      zIndex: 10,
+                      transition: { duration: 0.2 },
+                    }}
                   >
                     <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
@@ -181,7 +268,7 @@ export function Clients() {
                         />
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
