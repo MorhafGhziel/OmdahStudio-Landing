@@ -36,11 +36,19 @@ const clients = [
     name: "شفل",
     logo: "/images/شفل.png",
   },
+  {
+    name: "AMF",
+    logo: "/images/AMFlogo.png",
+  },
+  {
+    name: "Unknown Room",
+    logo: "/images/Unknown-Room.png",
+  },
 ];
 
-// Split clients into two rows
-const row1 = [...clients.slice(0, 4), ...clients.slice(0, 4)];
-const row2 = [...clients.slice(4), ...clients.slice(4)];
+// Split clients into two rows for better distribution
+const row1 = [...clients.slice(0, 6), ...clients.slice(0, 6)];
+const row2 = [...clients.slice(6), ...clients.slice(6)];
 
 export function Clients() {
   return (
