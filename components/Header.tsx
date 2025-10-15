@@ -4,10 +4,14 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { scrollY } = useScroll();
+  const pathname = usePathname();
+  const isProjectPage = pathname?.startsWith("/works/");
 
   const headerBg = useTransform(
     scrollY,
@@ -50,6 +54,22 @@ export function Header() {
       >
         <div className="container mx-auto px-6 lg:px-12">
           <div className="flex items-center justify-between h-20">
+            {/* Back Button - Only show on project pages */}
+            {isProjectPage && (
+              <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                onClick={() => {
+                  window.location.href = "/#works";
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white font-ibm-plex-sans-arabic text-sm font-semibold rounded-full hover:bg-white/20 transition-all duration-300 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                العودة للأعمال
+              </motion.button>
+            )}
+
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
