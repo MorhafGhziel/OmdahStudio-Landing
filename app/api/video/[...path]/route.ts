@@ -16,7 +16,7 @@ export async function GET(
     // Determine content type based on file extension
     const contentType = videoPath.endsWith('.mov') ? 'video/quicktime' : 'video/mp4';
     
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(fileBuffer.buffer, {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
