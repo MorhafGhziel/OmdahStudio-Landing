@@ -90,12 +90,12 @@ export function Works() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // Video is in view, start playing
-        video.muted = false;
-        video.play().catch(() => {
-          // If autoplay with sound fails, try muted
-          video.muted = true;
-          video.play().catch(() => {});
-        });
+            video.muted = false;
+            video.play().catch(() => {
+              // If autoplay with sound fails, try muted
+              video.muted = true;
+              video.play().catch(() => {});
+            });
           } else {
             // Video is out of view, pause
             if (!video.paused) {
@@ -289,6 +289,7 @@ export function Works() {
                       }}
                       onError={(e) => {
                         console.log("Video error:", e);
+                        console.log("Video src:", featuredWork.video);
                         setVideoLoading(false);
                         setVideoError(true);
                       }}
@@ -297,14 +298,14 @@ export function Works() {
                     </video>
 
                     {/* Play/Pause Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const video = videoRef.current;
                         if (video) {
-                            if (isPlaying) {
+                          if (isPlaying) {
                             video.pause();
-                            } else {
+                          } else {
                             video.muted = false;
                             video.play().catch(() => {
                               // If autoplay with sound fails, try muted
@@ -315,28 +316,28 @@ export function Works() {
                         }
                       }}
                       className="absolute top-4 right-4 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors duration-200 z-30 cursor-pointer"
-                      >
-                        {isPlaying ? (
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-5 h-5 ml-1"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        )}
-                      </button>
+                    >
+                      {isPlaying ? (
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5 ml-1"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      )}
+                    </button>
 
                     {/* Audio Toggle Button */}
-                          <button
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         const video = videoRef.current;
@@ -357,13 +358,13 @@ export function Works() {
                       ) : (
                         <svg
                           className="w-5 h-5"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-                            </svg>
+                        </svg>
                       )}
-                          </button>
+                    </button>
 
                     {/* Fullscreen Button */}
                     <button
@@ -409,12 +410,25 @@ export function Works() {
                       <svg
                         className="w-5 h-5"
                         fill="currentColor"
-                                viewBox="0 0 24 24"
-                              >
+                        viewBox="0 0 24 24"
+                      >
                         <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-                              </svg>
+                      </svg>
                     </button>
                   </>
+                ) : videoError ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
+                    <div className="text-center">
+                      <p className="text-sm mb-2">Video not available</p>
+                      <p className="text-xs text-white/60">Showing image instead</p>
+                    </div>
+                    <Image
+                      src={featuredWork.image}
+                      alt={featuredWork.title}
+                      fill
+                      className="object-cover -z-10"
+                    />
+                  </div>
                 ) : (
                   <Image
                     src={featuredWork.image}
@@ -437,45 +451,45 @@ export function Works() {
           className="px-4 sm:px-6 md:px-8"
         >
           <div className="flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:pb-0">
-          {gridWorks.map((work, index) => (
-            <motion.div
-              key={work.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
+            {gridWorks.map((work, index) => (
+              <motion.div
+                key={work.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
                 className="group flex-shrink-0 w-[280px] sm:w-[300px] md:w-[600px] snap-center lg:flex-shrink lg:w-auto"
-              onMouseEnter={() => setHoveredWork(work.id)}
-              onMouseLeave={() => setHoveredWork(null)}
-            >
+                onMouseEnter={() => setHoveredWork(work.id)}
+                onMouseLeave={() => setHoveredWork(null)}
+              >
                 <div className="relative w-full h-[280px] sm:h-[300px] md:h-[600px] lg:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden">
-                <Image
-                  src={work.image}
-                  alt={work.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                  <Image
+                    src={work.image}
+                    alt={work.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
 
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-                {/* Content */}
+                  {/* Content */}
                   <div className="absolute inset-x-0 bottom-0 flex flex-col items-center justify-end p-4 sm:p-6 pb-8">
                     <div className="flex items-center justify-center mb-4 w-full">
-                    <span className="px-2 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-ibm-plex-sans-arabic text-white/90">
-                      {work.category}
-                    </span>
-                  </div>
+                      <span className="px-2 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-ibm-plex-sans-arabic text-white/90">
+                        {work.category}
+                      </span>
+                    </div>
 
                     <h4 className="text-lg sm:text-xl md:text-2xl font-ibm-plex-sans-arabic font-bold text-white mb-4 text-center">
-                    {work.title}
-                  </h4>
+                      {work.title}
+                    </h4>
 
                     <div className="text-xs text-white/60 font-ibm-plex-sans-arabic mb-4">
-                    {work.client}
-                  </div>
+                      {work.client}
+                    </div>
 
-                  {/* View Details Button */}
+                    {/* View Details Button */}
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -498,18 +512,18 @@ export function Works() {
                     >
                       عرض التفاصيل
                     </button>
-                </div>
+                  </div>
 
-                {/* Hover Effect */}
-                <motion.div
+                  {/* Hover Effect */}
+                  <motion.div
                     className="absolute inset-0 bg-white/5"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: hoveredWork === work.id ? 1 : 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </div>
-            </motion.div>
-          ))}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: hoveredWork === work.id ? 1 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
       </div>
