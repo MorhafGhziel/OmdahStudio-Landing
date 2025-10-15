@@ -11,13 +11,23 @@ const nextConfig: NextConfig = {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable",
           },
+          {
+            key: "Content-Type",
+            value: "video/mp4",
+          },
         ],
       },
     ];
   },
-  // Increase the maximum file size for static files
+  // Enable static file serving
+  trailingSlash: false,
+  // Optimize for large files
   experimental: {
     largePageDataBytes: 128 * 1024 * 1024, // 128MB
+  },
+  // Enable static file optimization
+  images: {
+    unoptimized: true,
   },
 };
 

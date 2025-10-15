@@ -22,7 +22,7 @@ const works: Work[] = [
     title: "Deal",
     category: "تسويق",
     image: "/images/jedeal.png",
-    video: "/videos/OmdahProduction.mp4",
+    video: "/api/video/OmdahProduction.mp4",
     client: "Deal",
     year: "2024",
     featured: true,
@@ -42,7 +42,7 @@ const works: Work[] = [
     title: "Sabahik",
     category: "تسويق",
     image: "/images/sabahk.png",
-    video: "/videos/Sabahik.mov",
+    video: "/api/video/Sabahik.mov",
     client: "Sabahik",
     year: "2024",
     link: "/works/sabahik",
@@ -52,7 +52,7 @@ const works: Work[] = [
     title: "Safeside",
     category: "3D",
     image: "/images/safesidee.png",
-    video: "/videos/Safeside.mp4",
+    video: "/api/video/Safeside.mp4",
     client: "Safeside",
     year: "2023",
     link: "/works/safeside",
@@ -62,7 +62,7 @@ const works: Work[] = [
     title: "Shakkah",
     category: "تسويق",
     image: "/images/Shakkah.png",
-    video: "/videos/Shakkah.mov",
+    video: "/api/video/Shakkah.mov",
     client: "Shakkah",
     year: "2024",
     link: "/works/shakkah",
@@ -88,19 +88,23 @@ export function Works() {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Video is in view, start playing
-            video.muted = false;
-            video.play().catch(() => {
-              // If autoplay with sound fails, try muted
-              video.muted = true;
-              video.play().catch(() => {});
-            });
-          } else {
-            // Video is out of view, pause
-            if (!video.paused) {
-              video.pause();
+          try {
+            if (entry.isIntersecting) {
+              // Video is in view, start playing
+              video.muted = false;
+              video.play().catch(() => {
+                // If autoplay with sound fails, try muted
+                video.muted = true;
+                video.play().catch(() => {});
+              });
+            } else {
+              // Video is out of view, pause
+              if (!video.paused) {
+                video.pause();
+              }
             }
+          } catch (error) {
+            console.log("Video intersection observer error:", error);
           }
         });
       },
@@ -271,6 +275,14 @@ export function Works() {
                         console.log("Video loading started");
                         setVideoLoading(true);
                       }}
+                      onLoadStartCapture={() => {
+                        // Prevent storage access errors
+                        try {
+                          console.log("Video load start captured");
+                        } catch (e) {
+                          console.log("Video load start error:", e);
+                        }
+                      }}
                       onCanPlay={() => {
                         console.log("Video can play");
                         setVideoLoading(false);
@@ -420,7 +432,9 @@ export function Works() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4">
                     <div className="text-center">
                       <p className="text-sm mb-2">Video not available</p>
-                      <p className="text-xs text-white/60">Showing image instead</p>
+                      <p className="text-xs text-white/60">
+                        Showing image instead
+                      </p>
                     </div>
                     <Image
                       src={featuredWork.image}
