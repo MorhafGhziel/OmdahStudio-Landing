@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable static file serving for videos
+  // Simple configuration for video serving
   async headers() {
     return [
       {
@@ -11,21 +11,11 @@ const nextConfig: NextConfig = {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable",
           },
-          {
-            key: "Content-Type",
-            value: "video/mp4",
-          },
         ],
       },
     ];
   },
-  // Enable static file serving
-  trailingSlash: false,
-  // Optimize for large files
-  experimental: {
-    largePageDataBytes: 128 * 1024 * 1024, // 128MB
-  },
-  // Enable static file optimization
+  // Disable image optimization to avoid conflicts
   images: {
     unoptimized: true,
   },
