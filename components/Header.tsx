@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -89,28 +88,20 @@ export function Header() {
               ))}
             </motion.div>
 
-            <Link href="/" className="relative group">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="relative"
-              >
-                <Image
-                  src="/icons/logo_white_v2.svg"
-                  alt="Omdah Logo"
-                  width={120}
-                  height={40}
-                  className="h-26 w-auto"
-                />
-                <motion.div
-                  className="absolute -bottom-1 right-0 h-0.5 bg-white"
-                  initial={{ width: 0 }}
-                  whileHover={{ width: "100%" }}
-                  transition={{ duration: 0.3 }}
-                />
-              </motion.div>
-            </Link>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <Image
+                src="/icons/logo_white_v2.svg"
+                alt="Omdah Logo"
+                width={120}
+                height={40}
+                className="h-26 w-auto"
+              />
+            </motion.div>
 
             <motion.button
               initial={{ opacity: 0 }}
