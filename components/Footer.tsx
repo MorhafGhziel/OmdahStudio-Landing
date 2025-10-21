@@ -16,7 +16,7 @@ export const Footer = () => {
               className="mb-3 sm:mb-4 w-[100px] sm:w-[120px] h-auto"
             />
             <p className="text-sm sm:text-base text-gray-400 font-ibm-plex-sans-arabic text-center md:text-right max-w-[280px] md:max-w-none">
-              شركة سعودية، نشتغل على المحتوى المرئي
+ما يعتمد عليه مشروعك
             </p>
           </div>
 
