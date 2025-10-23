@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="ar">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${ibmPlexSansArabic.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${ibmPlexSansArabic.variable} antialiased bg-black`}
       >
         <Header />
         {children}
