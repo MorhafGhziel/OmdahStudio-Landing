@@ -90,7 +90,7 @@ export function AboutOmdah() {
       {/* Content */}
       <div className="container mx-auto px-4 sm:px-6 md:px-8 relative z-10">
         <div className="max-w-[90%] sm:max-w-3xl lg:max-w-5xl mx-auto">
-          <div className="text-center space-y-6 sm:space-y-8">
+          <div className="text-center">
             {/* Main Title */}
             <motion.div
               className="relative inline-block"
@@ -109,7 +109,7 @@ export function AboutOmdah() {
                   ease: "easeInOut",
                 }}
               />
-              <h1 className="relative text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-ibm-plex-sans-arabic bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80 leading-[1.3] pt-2 pb-1">
+              <h1 className="relative text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-ibm-plex-sans-arabic text-white leading-[1.3] pt-2 pb-1">
                 معك عُمدة
               </h1>
             </motion.div>
@@ -119,29 +119,17 @@ export function AboutOmdah() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-xl sm:text-2xl md:text-3xl font-ibm-plex-sans-arabic text-white/90"
+              className="text-xl sm:text-2xl md:text-3xl font-ibm-plex-sans-arabic text-white/90 mt-8 sm:mt-12"
             >
               ما يعتمد عليه مشروعك
             </motion.div>
-
-            {/* Description */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="text-base sm:text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-ibm-plex-sans-arabic"
-              dir="rtl"
-            >
-              شركة سعودية، نشتغل على المحتوى المرئي. نشتغل ببساطة، والبساطة هي
-              قوتنا.
-            </motion.p>
 
             {/* CTA Button */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="pt-4 sm:pt-6"
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="mt-12 sm:mt-16"
             >
               <motion.button
                 onClick={() => {
@@ -168,6 +156,27 @@ export function AboutOmdah() {
                 />
                 <span className="relative">اكتشف خدماتنا</span>
               </motion.button>
+            </motion.div>
+
+            {/* Our Story Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="mt-24 sm:mt-32 md:mt-40"
+            >
+              <div className="max-w-2xl mx-auto text-center">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-ibm-plex-sans-arabic text-white mb-6">
+                  قصتنا
+                </h3>
+                <p
+                  className="text-lg sm:text-xl text-white/80 leading-relaxed font-ibm-plex-sans-arabic"
+                  dir="rtl"
+                >
+                  شركة سعودية، نشتغل على المحتوى المرئي. نشتغل ببساطة، والبساطة
+                  هي قوتنا.
+                </p>
+              </div>
             </motion.div>
           </div>
         </div>
