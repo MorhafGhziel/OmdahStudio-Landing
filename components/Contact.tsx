@@ -109,7 +109,7 @@ export function Contact() {
                 البريد الإلكتروني
               </h3>
               <p className="text-white/70 font-ibm-plex-sans-arabic text-lg">
-                jmailmorhaf@gmail.com
+                info@omdah.sa
               </p>
             </motion.div>
 

@@ -63,7 +63,11 @@ export function ContactForm() {
         form.reset();
       } else {
         setSubmitStatus("error");
-        console.error("Form submission error:", result);
+        console.error("Form submission error:", {
+          status: response.status,
+          statusText: response.statusText,
+          result: result
+        });
       }
     } catch (error) {
       setSubmitStatus("error");
