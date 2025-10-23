@@ -145,7 +145,7 @@ export function AboutOmdah() {
             >
               <motion.button
                 onClick={() => {
-                  const servicesSection = document.getElementById("services");
+                  const servicesSection = document.getElementById("contact");
                   if (servicesSection) {
                     servicesSection.scrollIntoView({
                       behavior: "smooth",
@@ -158,7 +158,7 @@ export function AboutOmdah() {
                   backgroundColor: "rgba(255, 255, 255, 0.9)",
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative px-8 sm:px-12 py-3 sm:py-4 bg-white text-black font-ibm-plex-sans-arabic text-lg sm:text-xl rounded-lg sm:rounded-xl overflow-hidden group"
+                className="relative cursor-pointer px-8 sm:px-12 py-3 sm:py-4 bg-white text-black font-ibm-plex-sans-arabic text-lg sm:text-xl rounded-lg sm:rounded-xl overflow-hidden group"
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/50 to-white/0"
