@@ -108,7 +108,7 @@ export function AboutOmdah() {
                   ease: "easeInOut",
                 }}
               />
-              <h1 className="relative text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-ibm-plex-sans-arabic bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
+              <h1 className="relative text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-ibm-plex-sans-arabic bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80 leading-[1.3] pt-2 pb-1">
                 معك عُمدة
               </h1>
             </motion.div>
