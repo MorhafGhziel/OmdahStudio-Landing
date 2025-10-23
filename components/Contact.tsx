@@ -71,7 +71,7 @@ export function Contact() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-ibm-plex-sans-arabic font-bold mt-6 sm:mt-8 mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-ibm-plex-sans-arabic font-bold mt-6 sm:mt-8 mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80 pb-4"
           >
             التواصل
           </motion.h1>

@@ -66,7 +66,7 @@ export function ContactForm() {
         console.error("Form submission error:", {
           status: response.status,
           statusText: response.statusText,
-          result: result
+          result: result,
         });
       }
     } catch (error) {
@@ -94,7 +94,7 @@ export function ContactForm() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 block">
+                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 flex justify-end">
                     الاسم
                   </FormLabel>
                   <FormControl>
@@ -116,7 +116,7 @@ export function ContactForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 block">
+                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 flex justify-end">
                     البريد الإلكتروني
                   </FormLabel>
                   <FormControl>
@@ -139,7 +139,7 @@ export function ContactForm() {
               name="subject"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 block">
+                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 flex justify-end">
                     الموضوع
                   </FormLabel>
                   <FormControl>
@@ -161,7 +161,7 @@ export function ContactForm() {
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 block">
+                  <FormLabel className="text-white/90 font-ibm-plex-sans-arabic text-lg font-semibold mb-3 flex justify-end">
                     الرسالة
                   </FormLabel>
                   <FormControl>
@@ -187,7 +187,7 @@ export function ContactForm() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-white to-white/90 text-black hover:from-white/95 hover:to-white/85 font-ibm-plex-sans-arabic text-xl py-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl font-semibold"
+                className="w-full cursor-pointer bg-gradient-to-r from-white to-white/90 text-black hover:from-white/95 hover:to-white/85 font-ibm-plex-sans-arabic text-xl py-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl font-semibold"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center gap-3">
