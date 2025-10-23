@@ -94,7 +94,7 @@ export function Clients() {
         {/* Clients Rows */}
         <div className="space-y-8 sm:space-y-12 md:space-y-16 overflow-hidden">
           {/* Row 1 - Right to Left */}
-          <div className="relative h-20 sm:h-24 md:h-28 lg:h-32">
+          <div className="relative h-28 sm:h-32 md:h-36 lg:h-40">
             <motion.div
               className="flex items-center absolute"
               animate={{
@@ -115,14 +115,14 @@ export function Clients() {
                 {row1.map((client, index) => (
                   <motion.div
                     key={`${client.name}-${index}`}
-                    className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 px-4 sm:px-6 md:px-8"
                     whileHover={{
                       scale: 1.1,
                       zIndex: 10,
                       transition: { duration: 0.2 },
                     }}
                   >
-                    <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
+                    <div className="h-28 sm:h-32 md:h-36 lg:h-40 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
                         <Image
                           src={client.logo}
@@ -139,14 +139,14 @@ export function Clients() {
                 {row1.map((client, index) => (
                   <motion.div
                     key={`${client.name}-${index}-duplicate`}
-                    className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 px-4 sm:px-6 md:px-8"
                     whileHover={{
                       scale: 1.1,
                       zIndex: 10,
                       transition: { duration: 0.2 },
                     }}
                   >
-                    <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
+                    <div className="h-28 sm:h-32 md:h-36 lg:h-40 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
                         <Image
                           src={client.logo}
@@ -163,7 +163,7 @@ export function Clients() {
           </div>
 
           {/* Row 2 - Left to Right */}
-          <div className="relative h-20 sm:h-24 md:h-28 lg:h-32">
+          <div className="relative h-28 sm:h-32 md:h-36 lg:h-40">
             <motion.div
               className="flex items-center absolute"
               animate={{
@@ -184,14 +184,14 @@ export function Clients() {
                 {row2.map((client, index) => (
                   <motion.div
                     key={`${client.name}-${index}`}
-                    className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 px-4 sm:px-6 md:px-8"
                     whileHover={{
                       scale: 1.1,
                       zIndex: 10,
                       transition: { duration: 0.2 },
                     }}
                   >
-                    <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
+                    <div className="h-28 sm:h-32 md:h-36 lg:h-40 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
                         <Image
                           src={client.logo}
@@ -208,14 +208,14 @@ export function Clients() {
                 {row2.map((client, index) => (
                   <motion.div
                     key={`${client.name}-${index}-duplicate`}
-                    className="flex-shrink-0 w-32 sm:w-40 md:w-48 lg:w-56 px-4 sm:px-6 md:px-8"
+                    className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 px-4 sm:px-6 md:px-8"
                     whileHover={{
                       scale: 1.1,
                       zIndex: 10,
                       transition: { duration: 0.2 },
                     }}
                   >
-                    <div className="h-20 sm:h-24 md:h-28 lg:h-32 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
+                    <div className="h-28 sm:h-32 md:h-36 lg:h-40 bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 lg:p-6 transition-colors duration-300 hover:bg-white/10">
                       <div className="relative h-full flex items-center justify-center">
                         <Image
                           src={client.logo}
