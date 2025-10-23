@@ -12,6 +12,7 @@ export function AboutOmdah() {
 
   return (
     <motion.section
+      id="about"
       className="relative min-h-[100svh] flex items-center justify-center bg-black text-white overflow-hidden py-16 sm:py-20"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

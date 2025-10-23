@@ -37,7 +37,8 @@ export function Header() {
 
   const navItems = [
     { name: "اتصل بنا", href: "#contact" },
-    { name: "أعمالنا", href: "#work" },
+    { name: "أعمالنا", href: "#works" },
+    { name: "عملائنا", href: "#clients" },
     { name: "خدماتنا", href: "#services" },
     { name: "من نحن", href: "#about" },
   ];
