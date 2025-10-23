@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
@@ -105,7 +105,21 @@ export function ContactForm() {
                       dir="rtl"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                  <div className="min-h-[24px] flex justify-end">
+                    <AnimatePresence mode="wait">
+                      {form.formState.errors.name && (
+                        <motion.div
+                          key="name-error"
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                          <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </FormItem>
               )}
             />
@@ -128,7 +142,21 @@ export function ContactForm() {
                       dir="rtl"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                  <div className="min-h-[24px] flex justify-end">
+                    <AnimatePresence mode="wait">
+                      {form.formState.errors.email && (
+                        <motion.div
+                          key="email-error"
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                          <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </FormItem>
               )}
             />
@@ -150,7 +178,21 @@ export function ContactForm() {
                       dir="rtl"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                  <div className="min-h-[24px] flex justify-end">
+                    <AnimatePresence mode="wait">
+                      {form.formState.errors.subject && (
+                        <motion.div
+                          key="subject-error"
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                          <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </FormItem>
               )}
             />
@@ -173,7 +215,21 @@ export function ContactForm() {
                       dir="rtl"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                  <div className="min-h-[24px] flex justify-end">
+                    <AnimatePresence mode="wait">
+                      {form.formState.errors.message && (
+                        <motion.div
+                          key="message-error"
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                          <FormMessage className="text-red-400 font-ibm-plex-sans-arabic mt-2" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </FormItem>
               )}
             />
