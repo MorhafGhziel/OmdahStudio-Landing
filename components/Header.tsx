@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useAdmin } from "@/lib/admin-context";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +13,7 @@ export function Header() {
   const { scrollY } = useScroll();
   const pathname = usePathname();
   const isProjectPage = pathname?.startsWith("/works/");
+  const { isAdmin, logout } = useAdmin();
 
   const headerBg = useTransform(
     scrollY,
@@ -153,7 +155,7 @@ export function Header() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="relative"
+              className="relative flex items-center gap-4"
             >
               <Image
                 src="/icons/logo_white_v2.svg"
@@ -162,6 +164,18 @@ export function Header() {
                 height={40}
                 className="h-26 w-auto"
               />
+
+              {/* Admin Logout Button */}
+              {isAdmin && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  onClick={logout}
+                  className="px-3 py-1 bg-red-500/20 text-red-300 rounded text-xs hover:bg-red-500/30 transition-all font-ibm-plex-sans-arabic border border-red-500/30"
+                >
+                  Logout
+                </motion.button>
+              )}
             </motion.div>
 
             <motion.button
