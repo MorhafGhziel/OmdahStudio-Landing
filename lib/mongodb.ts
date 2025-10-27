@@ -25,10 +25,20 @@ let db: Db | undefined;
 export async function connectToDatabase() {
   // In production (serverless), use cached connection from globalThis
   if (typeof window === "undefined") {
+    // Check if cached connection exists and is still alive
     if (globalThis._mongoClient && globalThis._mongoDb) {
-      client = globalThis._mongoClient;
-      db = globalThis._mongoDb;
-      return { client, db };
+      try {
+        // Ping the database to check if connection is alive
+        await globalThis._mongoDb.admin().ping();
+        client = globalThis._mongoClient;
+        db = globalThis._mongoDb;
+        return { client, db };
+      } catch (error) {
+        // Connection is dead, clear cache
+        console.log("Cached connection is dead, creating new one...");
+        globalThis._mongoClient = undefined;
+        globalThis._mongoDb = undefined;
+      }
     }
   } else {
     // In browser environment, use module-level cache
@@ -39,7 +49,7 @@ export async function connectToDatabase() {
 
   try {
     console.log("Creating new MongoDB connection...");
-
+    
     client = new MongoClient(uri, options);
     await client.connect();
     db = client.db(dbName);
@@ -55,7 +65,16 @@ export async function connectToDatabase() {
     return { client, db };
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);
-
+    
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      if (error.stack) {
+        console.error("Error stack:", error.stack);
+      }
+    }
+    
     // Clean up on error
     if (client) {
       await client.close().catch(() => {
@@ -64,7 +83,7 @@ export async function connectToDatabase() {
     }
     client = undefined;
     db = undefined;
-
+    
     if (typeof window === "undefined") {
       globalThis._mongoClient = undefined;
       globalThis._mongoDb = undefined;

@@ -14,15 +14,35 @@ const serviceSchema = z.object({
 // GET - Fetch all services
 export async function GET() {
   try {
+    // Log environment check
+    console.log("[Services API] Environment:", process.env.NODE_ENV);
+    console.log(
+      "[Services API] MongoDB URI exists:",
+      !!process.env.MONGODB_URI
+    );
+
     console.log("[Services API] Attempting to fetch services...");
 
     const db = await getDatabase();
     console.log("[Services API] Database connection successful");
 
+    // Test database connection
+    await db.command({ ping: 1 });
+    console.log("[Services API] Database ping successful");
+
     const services = await db.collection("services").find({}).toArray();
     console.log(`[Services API] Found ${services.length} services`);
 
-    return NextResponse.json({ services }, { status: 200 });
+    return NextResponse.json(
+      {
+        services,
+        meta: {
+          count: services.length,
+          environment: process.env.NODE_ENV,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("[Services API] Error fetching services:", error);
 
@@ -33,14 +53,24 @@ export async function GET() {
       console.error("[Services API] Error stack:", error.stack);
     }
 
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    // Check MongoDB connection string
+    const mongoUri = process.env.MONGODB_URI || "";
+    const maskedUri = mongoUri.replace(/:([^@]+)@/, ":****@");
+    console.error("[Services API] Using MongoDB URI:", maskedUri);
 
     return NextResponse.json(
       {
         error: "Failed to fetch services",
         details:
-          process.env.NODE_ENV === "development" ? errorMessage : undefined,
+          process.env.NODE_ENV === "development"
+            ? error instanceof Error
+              ? error.message
+              : "Unknown error"
+            : undefined,
+        meta: {
+          environment: process.env.NODE_ENV,
+          hasMongoUri: !!process.env.MONGODB_URI,
+        },
       },
       { status: 500 }
     );

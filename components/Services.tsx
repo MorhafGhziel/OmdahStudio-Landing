@@ -21,17 +21,25 @@ export function Services() {
     const fetchServices = async () => {
       try {
         const response = await fetch("/api/services");
+        
+        if (!response.ok) {
+          console.error("API response not ok:", response.status, response.statusText);
+          setServices([]);
+          setLoading(false);
+          return;
+        }
+        
         const data = await response.json();
-
-        if (response.ok && data.services) {
+        
+        if (data && data.services && Array.isArray(data.services)) {
           setServices(data.services);
         } else {
-          console.error("Failed to fetch services:", data.error || data);
-          setServices([]); // Set empty array to show no services rather than loading forever
+          console.error("Invalid response format:", data);
+          setServices([]);
         }
       } catch (error) {
         console.error("Error fetching services:", error);
-        setServices([]); // Set empty array on error
+        setServices([]);
       } finally {
         setLoading(false);
       }
