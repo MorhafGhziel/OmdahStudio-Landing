@@ -1,5 +1,7 @@
 import { MongoClient, Db } from "mongodb";
+import { attachDatabasePool } from "@vercel/functions";
 
+// Get the MongoDB URI from environment variable (set by Vercel or fallback)
 const uri =
   process.env.MONGODB_URI ||
   "mongodb+srv://omdah_admin:omdah123@cluster0.4vpukx5.mongodb.net/omdah?retryWrites=true&w=majority";
@@ -37,7 +39,7 @@ export async function connectToDatabase() {
         client = globalThis._mongoClient;
         db = globalThis._mongoDb;
         return { client, db };
-      } catch (error) {
+      } catch {
         // Connection is dead, clear cache
         console.log("Cached connection is dead, creating new one...");
         globalThis._mongoClient = undefined;
@@ -53,8 +55,14 @@ export async function connectToDatabase() {
 
   try {
     console.log("Creating new MongoDB connection...");
-
+    
     client = new MongoClient(uri, options);
+    
+    // Attach Vercel's database pool for optimal serverless performance
+    if (typeof window === "undefined") {
+      attachDatabasePool(client);
+    }
+    
     await client.connect();
     db = client.db(dbName);
 
