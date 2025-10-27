@@ -2,6 +2,9 @@
   "functions": {
     "app/api/contact/route.ts": {
       "maxDuration": 10
+    },
+    "app/api/services/route.ts": {
+      "maxDuration": 15
     }
   }
 }

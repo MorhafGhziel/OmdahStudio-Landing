@@ -14,14 +14,27 @@ const serviceSchema = z.object({
 // GET - Fetch all services
 export async function GET() {
   try {
+    console.log("Attempting to fetch services...");
     const db = await getDatabase();
+    console.log("Database connection successful");
+
     const services = await db.collection("services").find({}).toArray();
+    console.log(`Found ${services.length} services`);
 
     return NextResponse.json({ services }, { status: 200 });
   } catch (error) {
     console.error("Error fetching services:", error);
+
+    // Provide more detailed error information
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error details:", errorMessage);
+
     return NextResponse.json(
-      { error: "Failed to fetch services" },
+      {
+        error: "Failed to fetch services",
+        details: errorMessage,
+      },
       { status: 500 }
     );
   }

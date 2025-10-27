@@ -22,11 +22,16 @@ export function Services() {
       try {
         const response = await fetch("/api/services");
         const data = await response.json();
-        if (response.ok) {
+
+        if (response.ok && data.services) {
           setServices(data.services);
+        } else {
+          console.error("Failed to fetch services:", data.error || data);
+          setServices([]); // Set empty array to show no services rather than loading forever
         }
       } catch (error) {
         console.error("Error fetching services:", error);
+        setServices([]); // Set empty array on error
       } finally {
         setLoading(false);
       }
