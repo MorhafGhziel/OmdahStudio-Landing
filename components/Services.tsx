@@ -314,7 +314,16 @@ function ServiceForm({
       if (response.ok) {
         onSave();
       } else {
-        alert("Failed to save service");
+        const errorData = await response.json();
+        console.error("Failed to save service:", errorData);
+        
+        // Show detailed error message
+        if (errorData.details && Array.isArray(errorData.details)) {
+          const errorMessages = errorData.details.map((issue: any) => issue.message).join("\n");
+          alert(`Failed to save service:\n${errorMessages}`);
+        } else {
+          alert(`Failed to save service: ${errorData.error || "Unknown error"}`);
+        }
       }
     } catch (error) {
       console.error("Error saving service:", error);
@@ -338,7 +347,7 @@ function ServiceForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2 font-ibm-plex-sans-arabic">
-              Title
+              Title <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -348,12 +357,14 @@ function ServiceForm({
               }
               className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
               required
+              minLength={1}
+              placeholder="أدخل عنوان الخدمة"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2 font-ibm-plex-sans-arabic">
-              Category
+              Category <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -363,12 +374,14 @@ function ServiceForm({
               }
               className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
               required
+              minLength={1}
+              placeholder="أدخل الفئة"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2 font-ibm-plex-sans-arabic">
-              Description
+              Description <span className="text-red-400">*</span> (Minimum 10 characters)
             </label>
             <textarea
               value={formData.description}
@@ -377,12 +390,17 @@ function ServiceForm({
               }
               className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40 h-20 resize-none"
               required
+              minLength={10}
+              placeholder="أدخل وصف الخدمة (10 أحرف على الأقل)"
             />
+            <p className="text-xs text-white/50 mt-1">
+              {formData.description.length} / 10 characters
+            </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2 font-ibm-plex-sans-arabic">
-              Features (comma separated)
+              Features (comma separated) <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -391,7 +409,7 @@ function ServiceForm({
                 setFormData({ ...formData, features: e.target.value })
               }
               className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
-              placeholder="Feature 1, Feature 2, Feature 3"
+              placeholder="ميزة 1, ميزة 2, ميزة 3"
               required
             />
           </div>

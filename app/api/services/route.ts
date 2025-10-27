@@ -107,6 +107,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating service:", error);
 
     if (error instanceof z.ZodError) {
+      console.error("Validation errors:", error.issues);
       return NextResponse.json(
         {
           error: "Validation failed",
@@ -117,7 +118,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Failed to create service" },
+      { 
+        error: "Failed to create service",
+        message: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }
