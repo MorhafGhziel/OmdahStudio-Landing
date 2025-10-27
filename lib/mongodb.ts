@@ -2,59 +2,74 @@ import { MongoClient, Db } from "mongodb";
 
 const uri =
   process.env.MONGODB_URI ||
-  "mongodb+srv://omdah_admin:omdah123@cluster0.4vpukx5.mongodb.net/?retryWrites=true&w=majority";
+  "mongodb+srv://omdah_admin:omdah123@cluster0.4vpukx5.mongodb.net/omdah?retryWrites=true&w=majority";
 const dbName = "omdah";
 
-// Connection options with proper timeout and pooling
+// Connection options optimized for serverless environments
 const options = {
-  maxPoolSize: 10,
-  serverSelectionTimeoutMS: 10000,
+  maxPoolSize: 1, // Keep connection pool small for serverless
+  serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
-  connectTimeoutMS: 10000,
+  connectTimeoutMS: 5000,
 };
 
-let client: MongoClient | null = null;
-let db: Db | null = null;
-let isConnecting = false;
+// Use globalThis for serverless environments to persist connections across invocations
+declare global {
+  var _mongoClient: MongoClient | undefined;
+  var _mongoDb: Db | undefined;
+}
+
+let client: MongoClient | undefined;
+let db: Db | undefined;
 
 export async function connectToDatabase() {
-  if (db && client) {
-    return { client, db };
-  }
-
-  if (isConnecting) {
-    // Wait for existing connection attempt
-    let attempts = 0;
-    while (attempts < 50) {
-      if (db && client) return { client, db };
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      attempts++;
+  // In production (serverless), use cached connection from globalThis
+  if (typeof window === "undefined") {
+    if (globalThis._mongoClient && globalThis._mongoDb) {
+      client = globalThis._mongoClient;
+      db = globalThis._mongoDb;
+      return { client, db };
     }
-    throw new Error(
-      "Connection timeout - another connection attempt is in progress"
-    );
+  } else {
+    // In browser environment, use module-level cache
+    if (client && db) {
+      return { client, db };
+    }
   }
-
-  isConnecting = true;
 
   try {
-    if (client && !db) {
-      db = client.db(dbName);
-    } else if (!client) {
-      client = new MongoClient(uri, options);
-      await client.connect();
-      db = client.db(dbName);
-    }
+    console.log("Creating new MongoDB connection...");
+
+    client = new MongoClient(uri, options);
+    await client.connect();
+    db = client.db(dbName);
 
     console.log("Connected to MongoDB successfully");
-    isConnecting = false;
+
+    // Cache connection for serverless environments
+    if (typeof window === "undefined") {
+      globalThis._mongoClient = client;
+      globalThis._mongoDb = db;
+    }
+
     return { client, db };
   } catch (error) {
-    isConnecting = false;
     console.error("Failed to connect to MongoDB:", error);
-    // Reset client and db on error to allow retry
-    client = null;
-    db = null;
+
+    // Clean up on error
+    if (client) {
+      await client.close().catch(() => {
+        // Ignore cleanup errors
+      });
+    }
+    client = undefined;
+    db = undefined;
+
+    if (typeof window === "undefined") {
+      globalThis._mongoClient = undefined;
+      globalThis._mongoDb = undefined;
+    }
+
     throw error;
   }
 }
