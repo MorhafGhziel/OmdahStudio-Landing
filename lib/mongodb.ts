@@ -5,12 +5,16 @@ const uri =
   "mongodb+srv://omdah_admin:omdah123@cluster0.4vpukx5.mongodb.net/omdah?retryWrites=true&w=majority";
 const dbName = "omdah";
 
-// Connection options optimized for serverless environments
+// Connection options optimized for MongoDB Atlas free tier
 const options = {
   maxPoolSize: 1, // Keep connection pool small for serverless
   serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  connectTimeoutMS: 5000,
+  socketTimeoutMS: 30000, // Free tier has 30s timeout
+  connectTimeoutMS: 10000,
+  // Free tier optimization
+  minPoolSize: 0,
+  maxIdleTimeMS: 25000, // Slightly less than the 30s timeout
+  waitQueueTimeoutMS: 10000,
 };
 
 // Use globalThis for serverless environments to persist connections across invocations
@@ -49,7 +53,7 @@ export async function connectToDatabase() {
 
   try {
     console.log("Creating new MongoDB connection...");
-    
+
     client = new MongoClient(uri, options);
     await client.connect();
     db = client.db(dbName);
@@ -65,7 +69,7 @@ export async function connectToDatabase() {
     return { client, db };
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);
-    
+
     // More detailed error logging
     if (error instanceof Error) {
       console.error("Error name:", error.name);
@@ -74,7 +78,7 @@ export async function connectToDatabase() {
         console.error("Error stack:", error.stack);
       }
     }
-    
+
     // Clean up on error
     if (client) {
       await client.close().catch(() => {
@@ -83,7 +87,7 @@ export async function connectToDatabase() {
     }
     client = undefined;
     db = undefined;
-    
+
     if (typeof window === "undefined") {
       globalThis._mongoClient = undefined;
       globalThis._mongoDb = undefined;
