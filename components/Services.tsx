@@ -319,7 +319,7 @@ function ServiceForm({
         
         // Show detailed error message
         if (errorData.details && Array.isArray(errorData.details)) {
-          const errorMessages = errorData.details.map((issue: any) => issue.message).join("\n");
+          const errorMessages = errorData.details.map((issue: { message?: string }) => issue.message).join("\n");
           alert(`Failed to save service:\n${errorMessages}`);
         } else {
           alert(`Failed to save service: ${errorData.error || "Unknown error"}`);
