@@ -21,16 +21,20 @@ export function Services() {
     const fetchServices = async () => {
       try {
         const response = await fetch("/api/services");
-        
+
         if (!response.ok) {
-          console.error("API response not ok:", response.status, response.statusText);
+          console.error(
+            "API response not ok:",
+            response.status,
+            response.statusText
+          );
           setServices([]);
           setLoading(false);
           return;
         }
-        
+
         const data = await response.json();
-        
+
         if (data && data.services && Array.isArray(data.services)) {
           setServices(data.services);
         } else {
@@ -316,13 +320,17 @@ function ServiceForm({
       } else {
         const errorData = await response.json();
         console.error("Failed to save service:", errorData);
-        
+
         // Show detailed error message
         if (errorData.details && Array.isArray(errorData.details)) {
-          const errorMessages = errorData.details.map((issue: { message?: string }) => issue.message).join("\n");
+          const errorMessages = errorData.details
+            .map((issue: { message?: string }) => issue.message)
+            .join("\n");
           alert(`Failed to save service:\n${errorMessages}`);
         } else {
-          alert(`Failed to save service: ${errorData.error || "Unknown error"}`);
+          alert(
+            `Failed to save service: ${errorData.error || "Unknown error"}`
+          );
         }
       }
     } catch (error) {
@@ -381,7 +389,8 @@ function ServiceForm({
 
           <div>
             <label className="block text-sm font-medium text-white/80 mb-2 font-ibm-plex-sans-arabic">
-              Description <span className="text-red-400">*</span> (Minimum 10 characters)
+              Description <span className="text-red-400">*</span> (Minimum 10
+              characters)
             </label>
             <textarea
               value={formData.description}
