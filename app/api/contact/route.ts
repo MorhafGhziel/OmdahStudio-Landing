@@ -40,9 +40,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email using Resend
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "info@omdah.sa";
+    const toEmail = process.env.RESEND_TO_EMAIL || "info@omdah.sa";
+
     const { data, error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: "info@omdah.sa",
+      from: fromEmail,
+      to: toEmail,
       subject: `New Contact Form Submission: ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
