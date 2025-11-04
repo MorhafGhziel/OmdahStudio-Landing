@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useAdmin } from "@/lib/admin-context";
+import { Loading } from "@/components/ui/Loading";
 
 interface HeroContent {
   title: string;
@@ -85,14 +86,6 @@ export function AboutOmdah() {
     setTempValue(heroContent[field]);
   };
 
-  if (loading) {
-    return (
-      <section className="relative min-h-[100svh] flex items-center justify-center bg-black text-white">
-        <div>Loading...</div>
-      </section>
-    );
-  }
-
   return (
     <motion.section
       id="about"
@@ -101,10 +94,14 @@ export function AboutOmdah() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
     >
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-[#111] to-black" />
+      {loading ? (
+        <Loading />
+      ) : (
+        <>
+          {/* Background Effects */}
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Base gradient */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-[#111] to-black" />
 
         {/* Glowing orbs */}
         <div className="absolute inset-0">
@@ -358,8 +355,8 @@ export function AboutOmdah() {
               transition={{ duration: 0.8, delay: 0.8 }}
               className="mt-24 sm:mt-32 md:mt-40"
             >
-              <div className="max-w-2xl mx-auto text-center">
-                <div className="flex items-center gap-3 justify-center mb-6">
+                <div className="max-w-2xl mx-auto text-center">
+                  <div className="flex items-center gap-3 justify-center mb-6">
                   {editingField === "storyTitle" ? (
                     <>
                       <button
@@ -451,6 +448,8 @@ export function AboutOmdah() {
           </div>
         </div>
       </div>
+        </>
+      )}
 
       {/* Scroll Indicator */}
       <motion.div

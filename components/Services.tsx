@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { ServiceCard } from "./ui/ServiceCard";
 import { useAdmin } from "@/lib/admin-context";
 import { ServiceType } from "@/lib/types";
+import { Loading } from "@/components/ui/Loading";
 
 interface ServicesContent {
   badge: string;
@@ -159,21 +160,6 @@ export function Services() {
     setTempValue(servicesContent[field]);
   };
 
-  if (loading) {
-    return (
-      <section
-        id="services"
-        className="py-16 sm:py-20 md:py-32 bg-black text-white relative overflow-hidden"
-      >
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-7xl relative">
-          <div className="text-center">
-            <div className="text-white text-xl">Loading services...</div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section
       id="services"
@@ -210,19 +196,226 @@ export function Services() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-7xl relative">
-        <div className="text-center mb-12 sm:mb-16 md:mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="inline-block relative"
-          >
-            <div className="flex items-center gap-2 justify-center">
-              {editingField === "badge" ? (
+        {loading ? (
+          <Loading />
+        ) : (
+          <>
+            <div className="text-center mb-12 sm:mb-16 md:mb-20">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="inline-block relative"
+              >
+                <div className="flex items-center gap-2 justify-center">
+                  {editingField === "badge" ? (
+                    <>
+                      <button
+                        onClick={() => handleContentSave("badge")}
+                        className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
+                      >
+                        حفظ
+                      </button>
+                      <button
+                        onClick={() => setEditingField(null)}
+                        className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+                      >
+                        إلغاء
+                      </button>
+                    </>
+                  ) : (
+                    isAdmin && (
+                      <button
+                        onClick={() => startEditing("badge")}
+                        className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                    )
+                  )}
+                  {editingField === "badge" ? (
+                    <input
+                      type="text"
+                      value={tempValue}
+                      onChange={(e) => setTempValue(e.target.value)}
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90 border border-white/30"
+                      dir="rtl"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90">
+                      {servicesContent.badge}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="flex items-center gap-3 justify-center mt-4 sm:mt-6 mb-3 sm:mb-4"
+              >
+                {editingField === "title" ? (
+                  <>
+                    <button
+                      onClick={() => handleContentSave("title")}
+                      className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
+                    >
+                      حفظ
+                    </button>
+                    <button
+                      onClick={() => setEditingField(null)}
+                      className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+                    >
+                      إلغاء
+                    </button>
+                  </>
+                ) : (
+                  isAdmin && (
+                    <button
+                      onClick={() => startEditing("title")}
+                      className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                  )
+                )}
+                {editingField === "title" ? (
+                  <input
+                    type="text"
+                    value={tempValue}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold text-white bg-white/10 border border-white/30 rounded px-4 py-2 flex-1 text-center"
+                    dir="rtl"
+                    autoFocus
+                  />
+                ) : (
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold text-white">
+                    {servicesContent.title}
+                  </h2>
+                )}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="flex items-start gap-3 justify-center"
+              >
+                {editingField === "description" ? (
+                  <>
+                    <button
+                      onClick={() => handleContentSave("description")}
+                      className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
+                    >
+                      حفظ
+                    </button>
+                    <button
+                      onClick={() => setEditingField(null)}
+                      className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+                    >
+                      إلغاء
+                    </button>
+                  </>
+                ) : (
+                  isAdmin && (
+                    <button
+                      onClick={() => startEditing("description")}
+                      className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                  )
+                )}
+                {editingField === "description" ? (
+                  <textarea
+                    value={tempValue}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    className="text-base sm:text-lg text-white/60 bg-white/10 border border-white/30 rounded px-4 py-2 flex-1 max-w-[90%] sm:max-w-2xl font-ibm-plex-sans-arabic"
+                    dir="rtl"
+                    rows={2}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-base sm:text-lg text-white/60 max-w-[90%] sm:max-w-2xl mx-auto font-ibm-plex-sans-arabic">
+                    {servicesContent.description}
+                  </p>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Admin Controls */}
+            {isAdmin && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-8 text-center"
+              >
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="px-6 py-3 bg-green-600 hover:bg-green-700 cursor-pointer text-white rounded-lg transition-all font-ibm-plex-sans-arabic font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  إضافة خدمة جديدة
+                </button>
+              </motion.div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+              {services.map((service, index) => (
+                <div key={service.id} className="relative group">
+                  <ServiceCard
+                    service={service}
+                    index={index}
+                    isHovered={hoveredService === service.id}
+                    isSelected={selectedService === service.id}
+                    onMouseEnter={() => setHoveredService(service.id)}
+                    onMouseLeave={() => setHoveredService(null)}
+                    onClick={() =>
+                      setSelectedService(
+                        selectedService === service.id ? null : service.id
+                      )
+                    }
+                  />
+
+                  {/* Admin Controls Overlay */}
+                  {isAdmin && (
+                    <div className="absolute top-2 right-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditingService(service)}
+                          className="p-2 bg-blue-500 cursor-pointer text-white rounded-lg hover:bg-blue-600 transition-all text-xs font-semibold shadow-lg"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(service.id)}
+                          className="p-2 bg-red-500 cursor-pointer text-white rounded-lg hover:bg-red-600 transition-all text-xs font-semibold shadow-lg"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* CTA Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="text-center mt-16 flex items-center gap-3 justify-center cursor-pointer"
+            >
+              {editingField === "ctaText" ? (
                 <>
                   <button
-                    onClick={() => handleContentSave("badge")}
+                    onClick={() => handleContentSave("ctaText")}
                     className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
                   >
                     حفظ
@@ -237,237 +430,34 @@ export function Services() {
               ) : (
                 isAdmin && (
                   <button
-                    onClick={() => startEditing("badge")}
+                    onClick={() => startEditing("ctaText")}
                     className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
                   >
                     Edit
                   </button>
                 )
               )}
-              {editingField === "badge" ? (
+              {editingField === "ctaText" ? (
                 <input
                   type="text"
                   value={tempValue}
                   onChange={(e) => setTempValue(e.target.value)}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90 border border-white/30"
+                  className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-ibm-plex-sans-arabic font-semibold rounded-full bg-white text-black border border-black/30"
                   dir="rtl"
                   autoFocus
                 />
               ) : (
-                <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90">
-                  {servicesContent.badge}
-                </span>
-              )}
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex items-center gap-3 justify-center mt-4 sm:mt-6 mb-3 sm:mb-4"
-          >
-            {editingField === "title" ? (
-              <>
                 <button
-                  onClick={() => handleContentSave("title")}
-                  className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
-                >
-                  حفظ
-                </button>
-                <button
-                  onClick={() => setEditingField(null)}
-                  className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
-                >
-                  إلغاء
-                </button>
-              </>
-            ) : (
-              isAdmin && (
-                <button
-                  onClick={() => startEditing("title")}
-                  className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
-                >
-                  Edit
-                </button>
-              )
-            )}
-            {editingField === "title" ? (
-              <input
-                type="text"
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold text-white bg-white/10 border border-white/30 rounded px-4 py-2 flex-1 text-center"
-                dir="rtl"
-                autoFocus
-              />
-            ) : (
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold text-white">
-                {servicesContent.title}
-              </h2>
-            )}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex items-start gap-3 justify-center"
-          >
-            {editingField === "description" ? (
-              <>
-                <button
-                  onClick={() => handleContentSave("description")}
-                  className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
-                >
-                  حفظ
-                </button>
-                <button
-                  onClick={() => setEditingField(null)}
-                  className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
-                >
-                  إلغاء
-                </button>
-              </>
-            ) : (
-              isAdmin && (
-                <button
-                  onClick={() => startEditing("description")}
-                  className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
-                >
-                  Edit
-                </button>
-              )
-            )}
-            {editingField === "description" ? (
-              <textarea
-                value={tempValue}
-                onChange={(e) => setTempValue(e.target.value)}
-                className="text-base sm:text-lg text-white/60 bg-white/10 border border-white/30 rounded px-4 py-2 flex-1 max-w-[90%] sm:max-w-2xl font-ibm-plex-sans-arabic"
-                dir="rtl"
-                rows={2}
-                autoFocus
-              />
-            ) : (
-              <p className="text-base sm:text-lg text-white/60 max-w-[90%] sm:max-w-2xl mx-auto font-ibm-plex-sans-arabic">
-                {servicesContent.description}
-              </p>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Admin Controls */}
-        {isAdmin && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8 text-center"
-          >
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 cursor-pointer text-white rounded-lg transition-all font-ibm-plex-sans-arabic font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              إضافة خدمة جديدة
-            </button>
-          </motion.div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-          {services.map((service, index) => (
-            <div key={service.id} className="relative group">
-              <ServiceCard
-                service={service}
-                index={index}
-                isHovered={hoveredService === service.id}
-                isSelected={selectedService === service.id}
-                onMouseEnter={() => setHoveredService(service.id)}
-                onMouseLeave={() => setHoveredService(null)}
-                onClick={() =>
-                  setSelectedService(
-                    selectedService === service.id ? null : service.id
-                  )
-                }
-              />
-
-              {/* Admin Controls Overlay */}
-              {isAdmin && (
-                <div className="absolute top-2 right-2">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setEditingService(service)}
-                      className="p-2 bg-blue-500 cursor-pointer text-white rounded-lg hover:bg-blue-600 transition-all text-xs font-semibold shadow-lg"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(service.id)}
-                      className="p-2 bg-red-500 cursor-pointer text-white rounded-lg hover:bg-red-600 transition-all text-xs font-semibold shadow-lg"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center mt-16 flex items-center gap-3 justify-center cursor-pointer"
-        >
-          {editingField === "ctaText" ? (
-            <>
-              <button
-                onClick={() => handleContentSave("ctaText")}
-                className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
-              >
-                حفظ
-              </button>
-              <button
-                onClick={() => setEditingField(null)}
-                className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
-              >
-                إلغاء
-              </button>
-            </>
-          ) : (
-            isAdmin && (
-              <button
-                onClick={() => startEditing("ctaText")}
-                className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
-              >
-                Edit
-              </button>
-            )
-          )}
-          {editingField === "ctaText" ? (
-            <input
-              type="text"
-              value={tempValue}
-              onChange={(e) => setTempValue(e.target.value)}
-              className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-ibm-plex-sans-arabic font-semibold rounded-full bg-white text-black border border-black/30"
-              dir="rtl"
-              autoFocus
-            />
-          ) : (
-            <button
-              onClick={() => {
-                const contactSection = document.getElementById("contact");
-                if (contactSection) {
-                  contactSection.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                  });
-                }
-              }}
-              className="
+                  onClick={() => {
+                    const contactSection = document.getElementById("contact");
+                    if (contactSection) {
+                      contactSection.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    }
+                  }}
+                  className="
               px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-ibm-plex-sans-arabic font-semibold rounded-full
               bg-white text-black
               hover:bg-white/90
@@ -476,11 +466,13 @@ export function Services() {
               active:scale-95
               cursor-pointer
             "
-            >
-              {servicesContent.ctaText}
-            </button>
-          )}
-        </motion.div>
+                >
+                  {servicesContent.ctaText}
+                </button>
+              )}
+            </motion.div>
+          </>
+        )}
       </div>
 
       {/* Add/Edit Form Modal */}
