@@ -46,40 +46,6 @@ export function Works() {
     fetchWorks();
   }, []);
 
-  if (loading) {
-    return (
-      <section
-        id="works"
-        className="py-16 sm:py-20 md:py-32 bg-black text-white relative overflow-hidden"
-      >
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="relative w-12 h-12">
-              <motion.div
-                className="absolute inset-0 border-4 border-white/20 rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
-              <motion.div
-                className="absolute inset-0 border-4 border-transparent border-t-white rounded-full"
-                animate={{ rotate: -360 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   const featuredWork = works.find((work) => work.featured);
   const gridWorks = works.filter((work) => !work.featured);
 
@@ -122,7 +88,7 @@ export function Works() {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [featuredWork?.video]);
 
   // Handle fullscreen change events
   useEffect(() => {
@@ -158,6 +124,40 @@ export function Works() {
       );
     };
   }, []);
+
+  if (loading) {
+    return (
+      <section
+        id="works"
+        className="py-16 sm:py-20 md:py-32 bg-black text-white relative overflow-hidden"
+      >
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="relative w-12 h-12">
+              <motion.div
+                className="absolute inset-0 border-4 border-white/20 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+              <motion.div
+                className="absolute inset-0 border-4 border-transparent border-t-white rounded-full"
+                animate={{ rotate: -360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
