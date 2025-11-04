@@ -136,7 +136,7 @@ export async function DELETE(request: NextRequest) {
     let result;
     try {
       result = await db.collection("clients").deleteOne({ _id: new ObjectId(id) });
-    } catch (error) {
+    } catch {
       // If ObjectId conversion fails, try finding by a different field or return error
       return NextResponse.json(
         { error: "Invalid client ID format" },

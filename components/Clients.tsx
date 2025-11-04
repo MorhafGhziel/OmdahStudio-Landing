@@ -475,9 +475,11 @@ export function Clients() {
 // Client Form Component
 function ClientForm({
   onSave,
+  clients,
 }: {
   onSave: () => void;
   onClose: () => void;
+  clients: Client[];
 }) {
   const [formData, setFormData] = useState({
     name: "",
