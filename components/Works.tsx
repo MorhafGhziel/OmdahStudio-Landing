@@ -23,6 +23,7 @@ export function Works() {
   const [videoLoading, setVideoLoading] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -61,9 +62,11 @@ export function Works() {
             if (entry.isIntersecting) {
               // Video is in view, start playing
               video.muted = false;
+              setIsMuted(false);
               video.play().catch(() => {
                 // If autoplay with sound fails, try muted
                 video.muted = true;
+                setIsMuted(true);
                 video.play().catch(() => {});
               });
             } else {
@@ -344,9 +347,11 @@ export function Works() {
                             video.pause();
                           } else {
                             video.muted = false;
+                            setIsMuted(false);
                             video.play().catch(() => {
                               // If autoplay with sound fails, try muted
                               video.muted = true;
+                              setIsMuted(true);
                               video.play().catch(() => {});
                             });
                           }
@@ -380,11 +385,12 @@ export function Works() {
                         const video = videoRef.current;
                         if (video) {
                           video.muted = !video.muted;
+                          setIsMuted(video.muted);
                         }
                       }}
                       className="absolute top-4 right-20 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors duration-200 z-30 cursor-pointer"
                     >
-                      {videoRef.current && videoRef.current.muted ? (
+                      {isMuted ? (
                         <svg
                           className="w-5 h-5"
                           fill="currentColor"

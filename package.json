@@ -6,10 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "upload-videos": "node scripts/upload-videos-to-blob.mjs",
-    "update-works": "node scripts/update-works-with-blob-urls.mjs",
-    "upload-and-update": "node scripts/upload-and-update-videos.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

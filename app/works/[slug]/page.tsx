@@ -3,119 +3,21 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { use } from "react";
+import { use, useState, useEffect } from "react";
 
-// Import the works data from the Works component
-const works = [
-  {
-    id: "01",
-    title: "Deal",
-    category: "تسويق",
-    image: "/images/jedeal.png",
-    video: "/videos/OmdahProduction.mp4",
-    client: "Deal",
-    year: "2024",
-    featured: true,
-    link: "/works/jedeal",
-    description:
-      "تطوير هوية بصرية متكاملة وحملة تسويقية شاملة لـ Deal، تضمنت إنتاج فيديوهات ترويجية وتصميم مواد تسويقية",
-    services: [
-      "تطوير الهوية البصرية",
-      "إنتاج فيديوهات ترويجية",
-      "تصميم المواد التسويقية",
-      "حملة تسويقية شاملة",
-    ],
-  },
-  {
-    id: "02",
-    title: "تغطية فعالية تجارية",
-    category: "توثيق",
-    image: "/images/zid.png",
-    client: "Zid",
-    year: "2024",
-    link: "/works/zid",
-    description:
-      "تغطية شاملة لفعالية إطلاق منتج جديد، مع إنتاج فيديو ترويجي ومحتوى لوسائل التواصل الاجتماعي",
-    services: [
-      "تغطية الفعالية",
-      "إنتاج فيديو ترويجي",
-      "محتوى وسائل التواصل الاجتماعي",
-      "تصوير احترافي",
-    ],
-  },
-  {
-    id: "03",
-    title: "إنتاج وثائقي",
-    category: "وثائقيات",
-    image: "/images/pangaea.png",
-    client: "Pangaea",
-    year: "2023",
-    link: "/works/pangaea",
-    description:
-      "إنتاج فيلم وثائقي قصير يحكي قصة نجاح شركة ناشئة في مجال التكنولوجيا المالية",
-    services: [
-      "إنتاج فيلم وثائقي",
-      "كتابة السيناريو",
-      "التصوير والمونتاج",
-      "الصوت والموسيقى",
-    ],
-  },
-  {
-    id: "04",
-    title: "Sabahik",
-    category: "تسويق",
-    image: "/images/sabahk.png",
-    video: "/videos/Sabahik.mov",
-    client: "Sabahik",
-    year: "2024",
-    link: "/works/sabahik",
-    description:
-      "تطوير هوية بصرية متكاملة وحملة تسويقية شاملة لـ Sabahik، تضمنت إنتاج فيديوهات ترويجية وتصميم مواد تسويقية",
-    services: [
-      "تطوير الهوية البصرية",
-      "إنتاج فيديوهات ترويجية",
-      "تصميم المواد التسويقية",
-      "حملة تسويقية شاملة",
-    ],
-  },
-  {
-    id: "05",
-    title: "Safeside",
-    category: "3D",
-    image: "/images/safesidee.png",
-    video: "/videos/Safeside.mp4",
-    video2: "/videos/Safeside2.mov",
-    client: "Safeside",
-    year: "2023",
-    link: "/works/safeside",
-    description:
-      "تصميم ثلاثي الأبعاد لمشروع معماري ضخم، مع إنتاج فيديو تفاعلي للعرض",
-    services: [
-      "تصميم ثلاثي الأبعاد",
-      "النمذجة المعمارية",
-      "إنتاج فيديو تفاعلي",
-      "العرض المرئي",
-    ],
-  },
-  {
-    id: "06",
-    title: "Shakkah",
-    category: "تسويق",
-    image: "/images/Shakkah.png",
-    video: "/videos/Shakkah.mov",
-    client: "Shakkah",
-    year: "2024",
-    link: "/works/shakkah",
-    description:
-      "تطوير هوية بصرية متكاملة وحملة تسويقية شاملة لـ Shakkah، تضمنت إنتاج فيديوهات ترويجية وتصميم مواد تسويقية",
-    services: [
-      "تطوير الهوية البصرية",
-      "إنتاج فيديوهات ترويجية",
-      "تصميم المواد التسويقية",
-      "حملة تسويقية شاملة",
-    ],
-  },
-];
+interface Project {
+  id: string;
+  title: string;
+  category: string;
+  image: string;
+  video?: string;
+  video2?: string;
+  client: string;
+  year: string;
+  link: string;
+  description: string;
+  services: string[];
+}
 
 interface ProjectDetailsPageProps {
   params: Promise<{
@@ -127,7 +29,63 @@ export default function ProjectDetailsPage({
   params,
 }: ProjectDetailsPageProps) {
   const { slug } = use(params);
-  const project = works.find((work) => work.link === `/works/${slug}`);
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const response = await fetch("/api/works");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.works && Array.isArray(data.works)) {
+            const foundProject = data.works.find(
+              (work: Project) => work.link === `/works/${slug}`
+            );
+            if (foundProject) {
+              console.log("Found project:", foundProject.title);
+              console.log("Video URL:", foundProject.video);
+              console.log("Video2 URL:", foundProject.video2);
+            }
+            setProject(foundProject || null);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching project:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProject();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-black via-neutral-900 to-black text-white flex items-center justify-center">
+        <div className="relative w-12 h-12">
+          <motion.div
+            className="absolute inset-0 border-4 border-white/20 rounded-full"
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+          <motion.div
+            className="absolute inset-0 border-4 border-transparent border-t-white rounded-full"
+            animate={{ rotate: -360 }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     notFound();
@@ -156,22 +114,57 @@ export default function ProjectDetailsPage({
                   loop
                   playsInline
                   controls
-                  preload="auto"
+                  preload="metadata"
                   onError={(e) => {
-                    console.error("Video error:", e);
-                    console.error("Video src:", project.video);
+                    const video = e.target as HTMLVideoElement;
+                    const error = video.error;
+                    console.error("Video error details:", {
+                      code: error?.code,
+                      message: error?.message,
+                      networkState: video.networkState,
+                      readyState: video.readyState,
+                      currentSrc: video.currentSrc,
+                      src: video.src,
+                    });
+                    console.error("Project video URL:", project.video);
+                    if (error) {
+                      console.error("MediaError code:", error.code);
+                      console.error("MediaError message:", error.message);
+                    }
+                  }}
+                  onLoadStart={() => {
+                    console.log("Video loading started:", project.video);
+                  }}
+                  onCanPlay={() => {
+                    console.log("Video can play:", project.video);
+                  }}
+                  onLoadedMetadata={() => {
+                    console.log("Video metadata loaded:", project.video);
                   }}
                 >
-                  {project.video.endsWith('.mp4') && (
+                  {project.video && (
                     <>
-                      <source src={`/api/video/${project.video.replace('/videos/', '')}`} type="video/mp4" />
-                      <source src={project.video} type="video/mp4" />
-                    </>
-                  )}
-                  {project.video.endsWith('.mov') && (
-                    <>
-                      <source src={`/api/video/${project.video.replace('/videos/', '')}`} type="video/quicktime" />
-                      <source src={project.video} type="video/quicktime" />
+                      {project.video.startsWith('http') ? (
+                        <>
+                          <source src={project.video} type="video/mp4" />
+                          <source src={project.video} type="video/quicktime" />
+                        </>
+                      ) : (
+                        <>
+                          {project.video.endsWith('.mp4') && (
+                            <>
+                              <source src={`/api/video/${project.video.replace('/videos/', '')}`} type="video/mp4" />
+                              <source src={project.video} type="video/mp4" />
+                            </>
+                          )}
+                          {project.video.endsWith('.mov') && (
+                            <>
+                              <source src={`/api/video/${project.video.replace('/videos/', '')}`} type="video/quicktime" />
+                              <source src={project.video} type="video/quicktime" />
+                            </>
+                          )}
+                        </>
+                      )}
                     </>
                   )}
                   Your browser does not support the video tag.
@@ -182,22 +175,57 @@ export default function ProjectDetailsPage({
                     loop
                     playsInline
                     controls
-                    preload="auto"
+                    preload="metadata"
                     onError={(e) => {
-                      console.error("Video2 error:", e);
-                      console.error("Video2 src:", project.video2);
+                      const video = e.target as HTMLVideoElement;
+                      const error = video.error;
+                      console.error("Video2 error details:", {
+                        code: error?.code,
+                        message: error?.message,
+                        networkState: video.networkState,
+                        readyState: video.readyState,
+                        currentSrc: video.currentSrc,
+                        src: video.src,
+                      });
+                      console.error("Project video2 URL:", project.video2);
+                      if (error) {
+                        console.error("MediaError code:", error.code);
+                        console.error("MediaError message:", error.message);
+                      }
+                    }}
+                    onLoadStart={() => {
+                      console.log("Video2 loading started:", project.video2);
+                    }}
+                    onCanPlay={() => {
+                      console.log("Video2 can play:", project.video2);
+                    }}
+                    onLoadedMetadata={() => {
+                      console.log("Video2 metadata loaded:", project.video2);
                     }}
                   >
-                    {project.video2.endsWith('.mp4') && (
+                    {project.video2 && (
                       <>
-                        <source src={`/api/video/${project.video2.replace('/videos/', '')}`} type="video/mp4" />
-                        <source src={project.video2} type="video/mp4" />
-                      </>
-                    )}
-                    {project.video2.endsWith('.mov') && (
-                      <>
-                        <source src={`/api/video/${project.video2.replace('/videos/', '')}`} type="video/quicktime" />
-                        <source src={project.video2} type="video/quicktime" />
+                        {project.video2.startsWith('http') ? (
+                          <>
+                            <source src={project.video2} type="video/mp4" />
+                            <source src={project.video2} type="video/quicktime" />
+                          </>
+                        ) : (
+                          <>
+                            {project.video2.endsWith('.mp4') && (
+                              <>
+                                <source src={`/api/video/${project.video2.replace('/videos/', '')}`} type="video/mp4" />
+                                <source src={project.video2} type="video/mp4" />
+                              </>
+                            )}
+                            {project.video2.endsWith('.mov') && (
+                              <>
+                                <source src={`/api/video/${project.video2.replace('/videos/', '')}`} type="video/quicktime" />
+                                <source src={project.video2} type="video/quicktime" />
+                              </>
+                            )}
+                          </>
+                        )}
                       </>
                     )}
                     Your browser does not support the video tag.
