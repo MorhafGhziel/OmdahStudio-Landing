@@ -29,7 +29,7 @@ export async function GET(
         contentType = "video/webm";
       }
 
-      return new NextResponse(file, {
+      return new NextResponse(new Uint8Array(file), {
         headers: {
           "Content-Type": contentType,
           "Accept-Ranges": "bytes",

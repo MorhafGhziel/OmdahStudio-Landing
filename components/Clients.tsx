@@ -12,88 +12,7 @@ interface Client {
   logo: string;
 }
 
-const defaultClients: Client[] = [
-  {
-    _id: "1",
-    name: "STC Bank",
-    logo: "/images/StcBank.png",
-  },
-  {
-    _id: "2",
-    name: "Zid",
-    logo: "/images/zid.png",
-  },
-  {
-    _id: "3",
-    name: "Pangaea",
-    logo: "/images/pangaea.png",
-  },
-  {
-    _id: "4",
-    name: "Safeside",
-    logo: "/images/safeside.png",
-  },
-  {
-    _id: "5",
-    name: "Al Dammam",
-    logo: "/images/aldammam.png",
-  },
-  {
-    _id: "6",
-    name: "Slope",
-    logo: "/images/slope.png",
-  },
-  {
-    _id: "7",
-    name: "Deal",
-    logo: "/images/deal.png",
-  },
-  {
-    _id: "8",
-    name: "شفل",
-    logo: "/images/شفل.png",
-  },
-  {
-    _id: "9",
-    name: "AMF",
-    logo: "/images/AMFlogo.png",
-  },
-  {
-    _id: "10",
-    name: "Unknown Room",
-    logo: "/images/Unknown-Room.png",
-  },
-  {
-    _id: "11",
-    name: "Client 1",
-    logo: "/images/f2c8e19a-b510-4653-89f4-3ab306ed9139_removalai_preview.png",
-  },
-  {
-    _id: "12",
-    name: "Client 2",
-    logo: "/images/e26e1692-ae63-482a-8ab0-0c34c917cc43_removalai_preview.png",
-  },
-  {
-    _id: "13",
-    name: "Client 3",
-    logo: "/images/9d1be18b-4426-469d-9076-67e22731bd92_removalai_preview.png",
-  },
-  {
-    _id: "14",
-    name: "Client 4",
-    logo: "/images/mylk.png",
-  },
-  {
-    _id: "15",
-    name: "Client 5",
-    logo: "/images/09191da8-fe58-4854-8891-c19ea6d9ce30_removalai_preview.png",
-  },
-  {
-    _id: "16",
-    name: "Client 6",
-    logo: "/images/02254bd4-0bd2-40c6-ab3d-45fc52844914_removalai_preview.png",
-  },
-];
+// Default clients are now seeded via API route
 
 interface ClientsContent {
   title: string;
@@ -564,24 +483,13 @@ function ClientForm({
     name: "",
     logo: "",
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [clientsList, setClientsList] = useState<Client[]>([]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
       setUploading(true);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
 
       // Auto-upload immediately
       try {
@@ -603,18 +511,12 @@ function ClientForm({
           const clientNumber = clients.length + 1;
           const autoName = `client-${clientNumber}`;
           setFormData({ name: autoName, logo: data.url });
-          setSelectedFile(null);
-          setPreview("");
         } else {
           alert("فشل رفع الصورة");
-          setSelectedFile(null);
-          setPreview("");
         }
       } catch (error) {
         console.error("Error uploading file:", error);
         alert("حدث خطأ أثناء رفع الصورة");
-        setSelectedFile(null);
-        setPreview("");
       } finally {
         setUploading(false);
       }
@@ -645,8 +547,6 @@ function ClientForm({
 
       if (response.ok) {
         setFormData({ name: "", logo: "" });
-        setPreview("");
-        setSelectedFile(null);
         onSave();
       } else {
         const errorData = await response.json();
@@ -691,17 +591,15 @@ function ClientForm({
                 />
               </div>
               <span className="text-sm text-white/60">{formData.logo}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({ ...formData, logo: "" });
-                  setSelectedFile(null);
-                  setPreview("");
-                }}
-                className="px-2 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
-              >
-                إزالة
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({ ...formData, logo: "" });
+                  }}
+                  className="px-2 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+                >
+                  إزالة
+                </button>
             </div>
           )}
         </div>
