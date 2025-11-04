@@ -5,6 +5,9 @@
     },
     "app/api/services/route.ts": {
       "maxDuration": 15
+    },
+    "app/api/video/[...path]/route.ts": {
+      "maxDuration": 60
     }
   }
 }

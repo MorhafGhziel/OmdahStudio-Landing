@@ -267,6 +267,7 @@ export function Works() {
                       playsInline
                       preload="auto"
                       controls={false}
+                      muted
                       style={{
                         backgroundColor: "black",
                         objectFit: "cover",
@@ -274,16 +275,6 @@ export function Works() {
                       onLoadStart={() => {
                         console.log("Video loading started");
                         setVideoLoading(true);
-                      }}
-                      onLoadStartCapture={(e) => {
-                        // Prevent storage access errors
-                        try {
-                          console.log("Video load start captured");
-                          e.preventDefault();
-                          e.stopPropagation();
-                        } catch (error) {
-                          console.log("Video load start error:", error);
-                        }
                       }}
                       onCanPlay={() => {
                         console.log("Video can play");
@@ -302,13 +293,19 @@ export function Works() {
                         setIsPlaying(false);
                       }}
                       onError={(e) => {
-                        console.log("Video error:", e);
-                        console.log("Video src:", featuredWork.video);
+                        console.error("Video error:", e);
+                        console.error("Video src:", featuredWork.video);
                         setVideoLoading(false);
                         setVideoError(true);
                       }}
                     >
-                      <source src={featuredWork.video} type="video/mp4" />
+                      {featuredWork.video.endsWith('.mp4') && (
+                        <source src={featuredWork.video} type="video/mp4" />
+                      )}
+                      {featuredWork.video.endsWith('.mov') && (
+                        <source src={featuredWork.video} type="video/quicktime" />
+                      )}
+                      Your browser does not support the video tag.
                     </video>
 
                     {/* Play/Pause Button */}

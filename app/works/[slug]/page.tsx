@@ -12,7 +12,7 @@ const works = [
     title: "Deal",
     category: "تسويق",
     image: "/images/jedeal.png",
-    video: "/videos/jedeal.mov",
+    video: "/videos/OmdahProduction.mp4",
     client: "Deal",
     year: "2024",
     featured: true,
@@ -156,9 +156,19 @@ export default function ProjectDetailsPage({
                   loop
                   playsInline
                   controls
+                  preload="auto"
+                  onError={(e) => {
+                    console.error("Video error:", e);
+                    console.error("Video src:", project.video);
+                  }}
                 >
-                  <source src={project.video} type="video/mp4" />
-                  <source src={project.video} type="video/quicktime" />
+                  {project.video.endsWith('.mp4') && (
+                    <source src={project.video} type="video/mp4" />
+                  )}
+                  {project.video.endsWith('.mov') && (
+                    <source src={project.video} type="video/quicktime" />
+                  )}
+                  Your browser does not support the video tag.
                 </video>
                 {project.video2 && (
                   <video
@@ -166,9 +176,19 @@ export default function ProjectDetailsPage({
                     loop
                     playsInline
                     controls
+                    preload="auto"
+                    onError={(e) => {
+                      console.error("Video2 error:", e);
+                      console.error("Video2 src:", project.video2);
+                    }}
                   >
-                    <source src={project.video2} type="video/mp4" />
-                    <source src={project.video2} type="video/quicktime" />
+                    {project.video2.endsWith('.mp4') && (
+                      <source src={project.video2} type="video/mp4" />
+                    )}
+                    {project.video2.endsWith('.mov') && (
+                      <source src={project.video2} type="video/quicktime" />
+                    )}
+                    Your browser does not support the video tag.
                   </video>
                 )}
               </div>
