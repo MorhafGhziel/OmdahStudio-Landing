@@ -11,6 +11,7 @@ import {
 interface AdminContextType {
   isAdmin: boolean;
   login: (username: string, password: string) => Promise<boolean>;
+  loginWithCode: (email: string, code: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -57,13 +58,40 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithCode = async (
+    email: string,
+    code: string
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/auth/verify-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, code }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("adminToken", data.token);
+        setIsAdmin(true);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Login error:", error);
+      return false;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("adminToken");
     setIsAdmin(false);
   };
 
   return (
-    <AdminContext.Provider value={{ isAdmin, login, logout, loading }}>
+    <AdminContext.Provider value={{ isAdmin, login, loginWithCode, logout, loading }}>
       {children}
     </AdminContext.Provider>
   );
