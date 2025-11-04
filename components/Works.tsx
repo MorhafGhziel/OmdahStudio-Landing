@@ -300,11 +300,13 @@ export function Works() {
                       }}
                     >
                       {featuredWork.video.endsWith('.mp4') && (
-                        <source src={featuredWork.video} type="video/mp4" />
+                        <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/mp4" />
                       )}
                       {featuredWork.video.endsWith('.mov') && (
-                        <source src={featuredWork.video} type="video/quicktime" />
+                        <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/quicktime" />
                       )}
+                      {/* Fallback to direct path */}
+                      <source src={featuredWork.video} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
 

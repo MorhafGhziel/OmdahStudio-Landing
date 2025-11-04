@@ -163,10 +163,16 @@ export default function ProjectDetailsPage({
                   }}
                 >
                   {project.video.endsWith('.mp4') && (
-                    <source src={project.video} type="video/mp4" />
+                    <>
+                      <source src={`/api/video/${project.video.replace('/videos/', '')}`} type="video/mp4" />
+                      <source src={project.video} type="video/mp4" />
+                    </>
                   )}
                   {project.video.endsWith('.mov') && (
-                    <source src={project.video} type="video/quicktime" />
+                    <>
+                      <source src={`/api/video/${project.video.replace('/videos/', '')}`} type="video/quicktime" />
+                      <source src={project.video} type="video/quicktime" />
+                    </>
                   )}
                   Your browser does not support the video tag.
                 </video>
@@ -183,10 +189,16 @@ export default function ProjectDetailsPage({
                     }}
                   >
                     {project.video2.endsWith('.mp4') && (
-                      <source src={project.video2} type="video/mp4" />
+                      <>
+                        <source src={`/api/video/${project.video2.replace('/videos/', '')}`} type="video/mp4" />
+                        <source src={project.video2} type="video/mp4" />
+                      </>
                     )}
                     {project.video2.endsWith('.mov') && (
-                      <source src={project.video2} type="video/quicktime" />
+                      <>
+                        <source src={`/api/video/${project.video2.replace('/videos/', '')}`} type="video/quicktime" />
+                        <source src={project.video2} type="video/quicktime" />
+                      </>
                     )}
                     Your browser does not support the video tag.
                   </video>
