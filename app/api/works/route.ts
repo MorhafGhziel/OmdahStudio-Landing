@@ -8,7 +8,7 @@ const defaultWorks = [
     title: "Deal",
     category: "تسويق",
     image: "/images/jedeal.png",
-    video: "/videos/OmdahProduction.mp4",
+    video: "/videos/jedeal.mov",
     client: "Deal",
     year: "2024",
     featured: true,
