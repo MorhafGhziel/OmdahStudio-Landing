@@ -6,6 +6,20 @@ import { ServiceCard } from "./ui/ServiceCard";
 import { useAdmin } from "@/lib/admin-context";
 import { ServiceType } from "@/lib/types";
 
+interface ServicesContent {
+  badge: string;
+  title: string;
+  description: string;
+  ctaText: string;
+}
+
+const defaultServicesContent: ServicesContent = {
+  badge: "خدماتنا",
+  title: "ما نقدمه لكم",
+  description: "حلول إبداعية متكاملة تواكب احتياجاتك وتتجاوز توقعاتك",
+  ctaText: "تواصل معنا الآن",
+};
+
 export function Services() {
   const [hoveredService, setHoveredService] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
@@ -15,6 +29,13 @@ export function Services() {
   const [editingService, setEditingService] = useState<ServiceType | null>(
     null
   );
+  const [servicesContent, setServicesContent] = useState<ServicesContent>(
+    defaultServicesContent
+  );
+  const [editingField, setEditingField] = useState<
+    keyof ServicesContent | null
+  >(null);
+  const [tempValue, setTempValue] = useState("");
   const { isAdmin } = useAdmin();
 
   useEffect(() => {
@@ -49,7 +70,25 @@ export function Services() {
       }
     };
 
+    const fetchContent = async () => {
+      try {
+        const response = await fetch("/api/content");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.content?.services) {
+            setServicesContent({
+              ...defaultServicesContent,
+              ...data.content.services,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching services content:", error);
+      }
+    };
+
     fetchServices();
+    fetchContent();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -84,6 +123,40 @@ export function Services() {
     }
     setShowAddForm(false);
     setEditingService(null);
+  };
+
+  const handleContentSave = async (field: keyof ServicesContent) => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const updatedContent = { ...servicesContent, [field]: tempValue };
+
+      const response = await fetch("/api/content", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          section: "services",
+          data: updatedContent,
+        }),
+      });
+
+      if (response.ok) {
+        setServicesContent(updatedContent);
+        setEditingField(null);
+      } else {
+        alert("فشل حفظ التغييرات");
+      }
+    } catch (error) {
+      console.error("Error saving content:", error);
+      alert("حدث خطأ أثناء الحفظ");
+    }
+  };
+
+  const startEditing = (field: keyof ServicesContent) => {
+    setEditingField(field);
+    setTempValue(servicesContent[field]);
   };
 
   if (loading) {
@@ -143,32 +216,146 @@ export function Services() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="inline-block"
+            className="inline-block relative"
           >
-            <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90">
-              خدماتنا
-            </span>
+            <div className="flex items-center gap-2 justify-center">
+              {editingField === "badge" ? (
+                <>
+                  <button
+                    onClick={() => handleContentSave("badge")}
+                    className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
+                  >
+                    حفظ
+                  </button>
+                  <button
+                    onClick={() => setEditingField(null)}
+                    className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+                  >
+                    إلغاء
+                  </button>
+                </>
+              ) : (
+                isAdmin && (
+                  <button
+                    onClick={() => startEditing("badge")}
+                    className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                )
+              )}
+              {editingField === "badge" ? (
+                <input
+                  type="text"
+                  value={tempValue}
+                  onChange={(e) => setTempValue(e.target.value)}
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90 border border-white/30"
+                  dir="rtl"
+                  autoFocus
+                />
+              ) : (
+                <span className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/10 backdrop-blur-sm text-xs sm:text-sm font-ibm-plex-sans-arabic text-white/90">
+                  {servicesContent.badge}
+                </span>
+              )}
+            </div>
           </motion.div>
 
-          <motion.h2
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold mt-4 sm:mt-6 mb-3 sm:mb-4 text-white"
+            className="flex items-center gap-3 justify-center mt-4 sm:mt-6 mb-3 sm:mb-4"
           >
-            ما نقدمه لكم
-          </motion.h2>
+            {editingField === "title" ? (
+              <>
+                <button
+                  onClick={() => handleContentSave("title")}
+                  className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
+                >
+                  حفظ
+                </button>
+                <button
+                  onClick={() => setEditingField(null)}
+                  className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+                >
+                  إلغاء
+                </button>
+              </>
+            ) : (
+              isAdmin && (
+                <button
+                  onClick={() => startEditing("title")}
+                  className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
+                >
+                  Edit
+                </button>
+              )
+            )}
+            {editingField === "title" ? (
+              <input
+                type="text"
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold text-white bg-white/10 border border-white/30 rounded px-4 py-2 flex-1 text-center"
+                dir="rtl"
+                autoFocus
+              />
+            ) : (
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-ibm-plex-sans-arabic font-bold text-white">
+                {servicesContent.title}
+              </h2>
+            )}
+          </motion.div>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-lg text-white/60 max-w-[90%] sm:max-w-2xl mx-auto font-ibm-plex-sans-arabic"
+            className="flex items-start gap-3 justify-center"
           >
-            حلول إبداعية متكاملة تواكب احتياجاتك وتتجاوز توقعاتك
-          </motion.p>
+            {editingField === "description" ? (
+              <>
+                <button
+                  onClick={() => handleContentSave("description")}
+                  className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
+                >
+                  حفظ
+                </button>
+                <button
+                  onClick={() => setEditingField(null)}
+                  className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+                >
+                  إلغاء
+                </button>
+              </>
+            ) : (
+              isAdmin && (
+                <button
+                  onClick={() => startEditing("description")}
+                  className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
+                >
+                  Edit
+                </button>
+              )
+            )}
+            {editingField === "description" ? (
+              <textarea
+                value={tempValue}
+                onChange={(e) => setTempValue(e.target.value)}
+                className="text-base sm:text-lg text-white/60 bg-white/10 border border-white/30 rounded px-4 py-2 flex-1 max-w-[90%] sm:max-w-2xl font-ibm-plex-sans-arabic"
+                dir="rtl"
+                rows={2}
+                autoFocus
+              />
+            ) : (
+              <p className="text-base sm:text-lg text-white/60 max-w-[90%] sm:max-w-2xl mx-auto font-ibm-plex-sans-arabic">
+                {servicesContent.description}
+              </p>
+            )}
+          </motion.div>
         </div>
 
         {/* Admin Controls */}
@@ -233,20 +420,66 @@ export function Services() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center mt-16"
+          className="text-center mt-16 flex items-center gap-3 justify-center cursor-pointer"
         >
-          <button
-            className="
-            px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-ibm-plex-sans-arabic font-semibold rounded-full
-            bg-white text-black
-            hover:bg-white/90
-            transition-all duration-300 transform hover:scale-105
-            shadow-lg hover:shadow-xl
-            active:scale-95
-          "
-          >
-            تواصل معنا الآن
-          </button>
+          {editingField === "ctaText" ? (
+            <>
+              <button
+                onClick={() => handleContentSave("ctaText")}
+                className="px-3 py-1 bg-green-500 text-white rounded text-xs cursor-pointer"
+              >
+                حفظ
+              </button>
+              <button
+                onClick={() => setEditingField(null)}
+                className="px-3 py-1 bg-red-500 text-white rounded text-xs cursor-pointer"
+              >
+                إلغاء
+              </button>
+            </>
+          ) : (
+            isAdmin && (
+              <button
+                onClick={() => startEditing("ctaText")}
+                className="px-3 py-1 bg-blue-500 text-white rounded text-xs cursor-pointer"
+              >
+                Edit
+              </button>
+            )
+          )}
+          {editingField === "ctaText" ? (
+            <input
+              type="text"
+              value={tempValue}
+              onChange={(e) => setTempValue(e.target.value)}
+              className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-ibm-plex-sans-arabic font-semibold rounded-full bg-white text-black border border-black/30"
+              dir="rtl"
+              autoFocus
+            />
+          ) : (
+            <button
+              onClick={() => {
+                const contactSection = document.getElementById("contact");
+                if (contactSection) {
+                  contactSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }
+              }}
+              className="
+              px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-ibm-plex-sans-arabic font-semibold rounded-full
+              bg-white text-black
+              hover:bg-white/90
+              transition-all duration-300 transform hover:scale-105
+              shadow-lg hover:shadow-xl
+              active:scale-95
+              cursor-pointer
+            "
+            >
+              {servicesContent.ctaText}
+            </button>
+          )}
         </motion.div>
       </div>
 
