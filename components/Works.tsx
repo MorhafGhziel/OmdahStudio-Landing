@@ -16,66 +16,69 @@ interface Work {
   link?: string;
 }
 
-const works: Work[] = [
-  {
-    id: "01",
-    title: "Deal",
-    category: "تسويق",
-    image: "/images/jedeal.png",
-    video: "/videos/OmdahProduction.mp4",
-    client: "Deal",
-    year: "2024",
-    featured: true,
-    link: "/works/jedeal",
-  },
-  {
-    id: "02",
-    title: "Deal",
-    category: "تسويق",
-    image: "/images/jedeal.png",
-    client: "Deal",
-    year: "2024",
-    link: "/works/jedeal",
-  },
-  {
-    id: "03",
-    title: "Sabahik",
-    category: "تسويق",
-    image: "/images/sabahk.png",
-    video: "/videos/Sabahik.mov",
-    client: "Sabahik",
-    year: "2024",
-    link: "/works/sabahik",
-  },
-  {
-    id: "04",
-    title: "Safeside",
-    category: "3D",
-    image: "/images/safesidee.png",
-    video: "/videos/Safeside.mp4",
-    client: "Safeside",
-    year: "2023",
-    link: "/works/safeside",
-  },
-  {
-    id: "05",
-    title: "Shakkah",
-    category: "تسويق",
-    image: "/images/Shakkah.png",
-    video: "/videos/Shakkah.mov",
-    client: "Shakkah",
-    year: "2024",
-    link: "/works/shakkah",
-  },
-];
-
 export function Works() {
+  const [works, setWorks] = useState<Work[]>([]);
+  const [loading, setLoading] = useState(true);
   const [hoveredWork, setHoveredWork] = useState<string | null>(null);
   const [videoLoading, setVideoLoading] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchWorks = async () => {
+      try {
+        const response = await fetch("/api/works");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.works && Array.isArray(data.works)) {
+            setWorks(data.works);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching works:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorks();
+  }, []);
+
+  if (loading) {
+    return (
+      <section
+        id="works"
+        className="py-16 sm:py-20 md:py-32 bg-black text-white relative overflow-hidden"
+      >
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="relative w-12 h-12">
+              <motion.div
+                className="absolute inset-0 border-4 border-white/20 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+              <motion.div
+                className="absolute inset-0 border-4 border-transparent border-t-white rounded-full"
+                animate={{ rotate: -360 }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const featuredWork = works.find((work) => work.featured);
   const gridWorks = works.filter((work) => !work.featured);
@@ -299,14 +302,35 @@ export function Works() {
                         setVideoError(true);
                       }}
                     >
-                      {featuredWork.video.endsWith('.mp4') && (
-                        <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/mp4" />
+                      {featuredWork.video && (
+                        <>
+                          {featuredWork.video.startsWith('http') ? (
+                            <>
+                              {featuredWork.video.endsWith('.mp4') && (
+                                <source src={featuredWork.video} type="video/mp4" />
+                              )}
+                              {featuredWork.video.endsWith('.mov') && (
+                                <source src={featuredWork.video} type="video/quicktime" />
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {featuredWork.video.endsWith('.mp4') && (
+                                <>
+                                  <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/mp4" />
+                                  <source src={featuredWork.video} type="video/mp4" />
+                                </>
+                              )}
+                              {featuredWork.video.endsWith('.mov') && (
+                                <>
+                                  <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/quicktime" />
+                                  <source src={featuredWork.video} type="video/quicktime" />
+                                </>
+                              )}
+                            </>
+                          )}
+                        </>
                       )}
-                      {featuredWork.video.endsWith('.mov') && (
-                        <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/quicktime" />
-                      )}
-                      {/* Fallback to direct path */}
-                      <source src={featuredWork.video} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
 

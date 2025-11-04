@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "upload-videos": "node scripts/upload-videos-to-blob.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@types/jsonwebtoken": "^9.0.10",
+    "@vercel/blob": "^2.0.0",
     "@vercel/functions": "^3.1.4",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -42,6 +44,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vercel": "^48.8.2"
   }
 }
