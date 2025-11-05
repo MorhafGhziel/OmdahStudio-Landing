@@ -808,32 +808,96 @@ export function Works() {
                 const token = localStorage.getItem("adminToken");
                 if (!token) throw new Error("Not authenticated");
 
-                const formData = new FormData();
-                formData.append("file", file);
+                const getUploadUrlResponse = await fetch(
+                  "/api/videos/upload-url",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      filename: file.name,
+                      contentType: file.type || "video/mp4",
+                    }),
+                  }
+                );
 
-                const response = await fetch("/api/videos/upload", {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                  body: formData,
-                });
-
-                if (!response.ok) {
-                  const errorData = await response.json().catch(() => ({}));
+                if (!getUploadUrlResponse.ok) {
+                  const errorData = await getUploadUrlResponse
+                    .json()
+                    .catch(() => ({}));
                   const errorMessage =
                     errorData.message ||
                     errorData.error ||
-                    "Failed to upload video";
+                    "Failed to get upload URL";
                   throw new Error(errorMessage);
                 }
 
-                const data = await response.json();
-                return data.url;
+                const { uploadUrl, url } = await getUploadUrlResponse.json();
+
+                const uploadResponse = await fetch(uploadUrl, {
+                  method: "PUT",
+                  body: file,
+                  headers: {
+                    "Content-Type": file.type || "video/mp4",
+                  },
+                });
+
+                if (!uploadResponse.ok) {
+                  throw new Error(
+                    `Upload failed with status ${uploadResponse.status}`
+                  );
+                }
+
+                return url;
               }}
               onImageUpload={async (file) => {
                 const token = localStorage.getItem("adminToken");
                 if (!token) throw new Error("Not authenticated");
+
+                if (file.size > 4 * 1024 * 1024) {
+                  const getUploadUrlResponse = await fetch("/api/upload-url", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      filename: file.name,
+                      contentType: file.type || "image/png",
+                    }),
+                  });
+
+                  if (!getUploadUrlResponse.ok) {
+                    const errorData = await getUploadUrlResponse
+                      .json()
+                      .catch(() => ({}));
+                    const errorMessage =
+                      errorData.message ||
+                      errorData.error ||
+                      "Failed to get upload URL";
+                    throw new Error(errorMessage);
+                  }
+
+                  const { uploadUrl, url } = await getUploadUrlResponse.json();
+
+                  const uploadResponse = await fetch(uploadUrl, {
+                    method: "PUT",
+                    body: file,
+                    headers: {
+                      "Content-Type": file.type || "image/png",
+                    },
+                  });
+
+                  if (!uploadResponse.ok) {
+                    throw new Error(
+                      `Upload failed with status ${uploadResponse.status}`
+                    );
+                  }
+
+                  return url;
+                }
 
                 const formData = new FormData();
                 formData.append("file", file);
