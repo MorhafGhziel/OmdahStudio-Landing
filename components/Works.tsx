@@ -566,7 +566,7 @@ export function Works() {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="px-4 sm:px-6 md:px-8"
         >
-          <div className="scrollable-works flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory">
+          <div className="scrollable-works flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory">
             {gridWorks.map((work, index) => (
               <motion.div
                 key={work.id}
