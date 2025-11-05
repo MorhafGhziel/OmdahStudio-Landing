@@ -4,6 +4,25 @@ import { getDatabase } from "@/lib/mongodb";
 // Default works data
 const defaultWorks = [
   {
+    id: "00",
+    title: "Omdah Production",
+    category: "إنتاج",
+    image: "/images/jedeal.png",
+    video: "https://s3.us-west-1.idrivee2.com/omdah/videos/OmdahProduction.mp4",
+    client: "Omdah",
+    year: "2024",
+    featured: true,
+    link: "/works/omdah-production",
+    description:
+      "إنتاج فيديو ترويجي يعرض أعمالنا وإنجازاتنا في مجال الإنتاج والتسويق",
+    services: [
+      "إنتاج فيديو ترويجي",
+      "تصوير احترافي",
+      "مونتاج وتحرير",
+      "هوية بصرية",
+    ],
+  },
+  {
     id: "01",
     title: "Deal",
     category: "تسويق",
@@ -11,7 +30,7 @@ const defaultWorks = [
     video: "https://s3.us-west-1.idrivee2.com/omdah/videos/jedeal.mov",
     client: "Deal",
     year: "2024",
-    featured: true,
+    featured: false,
     link: "/works/jedeal",
     description:
       "تطوير هوية بصرية متكاملة وحملة تسويقية شاملة لـ Deal، تضمنت إنتاج فيديوهات ترويجية وتصميم مواد تسويقية",
@@ -20,23 +39,6 @@ const defaultWorks = [
       "إنتاج فيديوهات ترويجية",
       "تصميم المواد التسويقية",
       "حملة تسويقية شاملة",
-    ],
-  },
-  {
-    id: "02",
-    title: "Deal",
-    category: "تسويق",
-    image: "/images/jedeal.png",
-    client: "Deal",
-    year: "2024",
-    link: "/works/jedeal",
-    description:
-      "تغطية شاملة لفعالية إطلاق منتج جديد، مع إنتاج فيديو ترويجي ومحتوى لوسائل التواصل الاجتماعي",
-    services: [
-      "تغطية الفعالية",
-      "إنتاج فيديو ترويجي",
-      "محتوى وسائل التواصل الاجتماعي",
-      "تصوير احترافي",
     ],
   },
   {
@@ -114,7 +116,82 @@ export async function GET() {
       return NextResponse.json({ works: seededWorks }, { status: 200 });
     }
 
-    return NextResponse.json({ works }, { status: 200 });
+    // Ensure Omdah Production is featured (not Deal)
+    const featuredWork = works.find((work) => work.featured === true);
+    const omdahProduction = works.find(
+      (work) => work.title === "Omdah Production" || work.title === "Omdah"
+    );
+    const dealWork = works.find((work) => work.title === "Deal");
+
+    if (featuredWork && featuredWork.title === "Deal") {
+      // Remove featured from Deal
+      await db.collection("works").updateOne(
+        { _id: featuredWork._id },
+        {
+          $set: {
+            featured: false,
+            updatedAt: new Date(),
+          },
+        }
+      );
+    }
+
+    if (omdahProduction && !omdahProduction.featured) {
+      // Make Omdah Production featured
+      await db.collection("works").updateOne(
+        { _id: omdahProduction._id },
+        {
+          $set: {
+            featured: true,
+            video: "https://s3.us-west-1.idrivee2.com/omdah/videos/OmdahProduction.mp4",
+            updatedAt: new Date(),
+          },
+        }
+      );
+    } else if (!omdahProduction) {
+      // Create Omdah Production if it doesn't exist
+      const defaultOmdah = defaultWorks.find(
+        (work) => work.title === "Omdah Production"
+      );
+      if (defaultOmdah) {
+        await db.collection("works").insertOne({
+          ...defaultOmdah,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+    }
+
+    // Ensure Deal has the correct video
+    if (dealWork && dealWork.video !== "https://s3.us-west-1.idrivee2.com/omdah/videos/jedeal.mov") {
+      await db.collection("works").updateOne(
+        { _id: dealWork._id },
+        {
+          $set: {
+            video: "https://s3.us-west-1.idrivee2.com/omdah/videos/jedeal.mov",
+            featured: false,
+            updatedAt: new Date(),
+          },
+        }
+      );
+    }
+
+    // Remove duplicate Deal entries without video
+    const duplicateDeals = works.filter(
+      (work) =>
+        work.title === "Deal" &&
+        work._id !== dealWork?._id &&
+        (!work.video || work.video === "")
+    );
+    if (duplicateDeals.length > 0) {
+      const idsToRemove = duplicateDeals.map((work) => work._id);
+      await db.collection("works").deleteMany({
+        _id: { $in: idsToRemove },
+      });
+    }
+
+    const updatedWorks = await db.collection("works").find({}).toArray();
+    return NextResponse.json({ works: updatedWorks }, { status: 200 });
   } catch (error) {
     console.error("Error fetching works:", error);
     // Return default works if database fails

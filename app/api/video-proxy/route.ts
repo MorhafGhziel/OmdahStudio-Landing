@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
 
+function streamToReadableStream(stream: Readable): ReadableStream<Uint8Array> {
+  return new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          controller.enqueue(
+            chunk instanceof Buffer ? chunk : Buffer.from(chunk)
+          );
+        }
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -27,9 +44,7 @@ export async function GET(request: NextRequest) {
     if (isIDrive && process.env.IDRIVE_ACCESS_KEY_ID && process.env.IDRIVE_SECRET_ACCESS_KEY) {
       try {
         const url = new URL(videoUrl);
-        
         const bucket = process.env.IDRIVE_BUCKET_NAME || 'omdah';
-        
         const pathParts = url.pathname.substring(1).split('/').filter(Boolean);
         
         let key: string;
@@ -42,14 +57,6 @@ export async function GET(request: NextRequest) {
         if (!key.startsWith('videos/') && !key.includes('/')) {
           key = `videos/${key}`;
         }
-        
-        console.log(`[Video Proxy] Fetching from IDrive e2:`);
-        console.log(`  Original URL: ${videoUrl}`);
-        console.log(`  Parsed pathname: ${url.pathname}`);
-        console.log(`  Path parts: ${JSON.stringify(pathParts)}`);
-        console.log(`  Bucket: ${bucket}`);
-        console.log(`  Key: ${key}`);
-        console.log(`  Endpoint: ${process.env.IDRIVE_ENDPOINT}`);
 
         const s3Client = new S3Client({
           region: process.env.IDRIVE_REGION || "us-west-1",
@@ -68,16 +75,7 @@ export async function GET(request: NextRequest) {
           ...(range && { Range: range }),
         });
 
-        console.log(`[Video Proxy] S3 Command:`, {
-          Bucket: bucket,
-          Key: key,
-          Range: range || 'none',
-          Endpoint: `https://${process.env.IDRIVE_ENDPOINT}`,
-        });
-
         const response = await s3Client.send(command);
-        
-        console.log(`[Video Proxy] Successfully fetched from S3`);
         
         if (!response.Body) {
           return NextResponse.json(
@@ -86,64 +84,40 @@ export async function GET(request: NextRequest) {
           );
         }
 
-        const stream = response.Body;
-        if (!stream) {
-          return NextResponse.json(
-            { error: "No video data received" },
-            { status: 500 }
-          );
-        }
-
-        const chunks: Buffer[] = [];
-        
-        const streamBody = stream as Readable;
-        for await (const chunk of streamBody) {
-          chunks.push(Buffer.from(chunk));
-        }
-        
-        const videoData = Buffer.concat(chunks);
+        const stream = response.Body as Readable;
+        const readableStream = streamToReadableStream(stream);
 
         const contentType = response.ContentType || "video/mp4";
-        const contentLength = response.ContentLength || videoData.length;
+        const contentLength = response.ContentLength?.toString();
         const acceptRanges = response.AcceptRanges || "bytes";
         const contentRange = response.ContentRange;
 
+        const headers = new Headers({
+          "Content-Type": contentType,
+          "Accept-Ranges": acceptRanges,
+          "Cache-Control": "public, max-age=31536000, immutable",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+          "Access-Control-Allow-Headers": "Range",
+        });
+
+        if (contentLength) {
+          headers.set("Content-Length", contentLength);
+        }
+
         if (range && contentRange) {
-          return new NextResponse(videoData, {
+          headers.set("Content-Range", contentRange);
+          return new NextResponse(readableStream, {
             status: 206,
-            headers: {
-              "Content-Range": contentRange,
-              "Accept-Ranges": acceptRanges,
-              "Content-Length": contentLength.toString(),
-              "Content-Type": contentType,
-              "Cache-Control": "public, max-age=31536000, immutable",
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-              "Access-Control-Allow-Headers": "Range",
-            },
+            headers,
           });
         }
 
-        return new NextResponse(videoData, {
-          headers: {
-            "Content-Type": contentType,
-            "Accept-Ranges": acceptRanges,
-            "Content-Length": contentLength.toString(),
-            "Cache-Control": "public, max-age=31536000, immutable",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-            "Access-Control-Allow-Headers": "Range",
-          },
+        return new NextResponse(readableStream, {
+          headers,
         });
       } catch (s3Error: unknown) {
         const error = s3Error as { message?: string; name?: string; Code?: string; code?: string; $metadata?: { httpStatusCode?: number } };
-        console.error("[Video Proxy] Error fetching from IDrive e2:", s3Error);
-        console.error("[Video Proxy] Error details:", {
-          message: error.message,
-          name: error.name,
-          code: error.Code || error.code,
-          statusCode: error.$metadata?.httpStatusCode,
-        });
         
         if (error.Code === 'NoSuchKey' || error.Code === 'AccessDenied' || error.$metadata?.httpStatusCode === 404) {
           return NextResponse.json(
@@ -151,30 +125,17 @@ export async function GET(request: NextRequest) {
             { status: 404 }
           );
         }
-        
-        console.log("[Video Proxy] Falling back to direct fetch...");
       }
     }
 
-    const fetchOptions: RequestInit = {
-      headers: {},
-    };
-
     const range = request.headers.get("range");
-    if (range) {
-      fetchOptions.headers = {
-        ...fetchOptions.headers,
-        Range: range,
-      };
-    }
+    const fetchOptions: RequestInit = {
+      headers: range ? { Range: range } : {},
+    };
     
     const response = await fetch(videoUrl, fetchOptions);
 
     if (!response.ok) {
-      console.error(
-        `Failed to fetch video: ${response.status} ${response.statusText}`
-      );
-      console.error("Video URL:", videoUrl);
       return NextResponse.json(
         { error: "Failed to fetch video" },
         { status: response.status }
@@ -186,35 +147,29 @@ export async function GET(request: NextRequest) {
     const acceptRanges = response.headers.get("accept-ranges") || "bytes";
     const contentRange = response.headers.get("content-range");
 
-    if (response.status === 206 && range) {
-      const videoData = await response.arrayBuffer();
-      
-      return new NextResponse(videoData, {
+    const headers = new Headers({
+      "Content-Type": contentType,
+      "Accept-Ranges": acceptRanges,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Range",
+    });
+
+    if (contentLength) {
+      headers.set("Content-Length", contentLength);
+    }
+
+    if (response.status === 206 && contentRange) {
+      headers.set("Content-Range", contentRange);
+      return new NextResponse(response.body, {
         status: 206,
-        headers: {
-          "Content-Range": contentRange || "",
-          "Accept-Ranges": acceptRanges,
-          "Content-Length": contentLength || videoData.byteLength.toString(),
-          "Content-Type": contentType,
-          "Cache-Control": "public, max-age=31536000, immutable",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-          "Access-Control-Allow-Headers": "Range",
-        },
+        headers,
       });
     }
 
-    const videoData = await response.arrayBuffer();
-    return new NextResponse(videoData, {
-      headers: {
-        "Content-Type": contentType,
-        "Accept-Ranges": acceptRanges,
-        "Content-Length": contentLength || videoData.byteLength.toString(),
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-        "Access-Control-Allow-Headers": "Range",
-      },
+    return new NextResponse(response.body, {
+      headers,
     });
   } catch (error) {
     console.error("Error proxying video:", error);
