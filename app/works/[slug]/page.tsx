@@ -93,17 +93,13 @@ export default function ProjectDetailsPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-neutral-900 to-black text-white flex flex-col pt-24 relative overflow-hidden">
-      {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-neutral-800/10 via-neutral-600/5 to-neutral-900/10" />
 
-        {/* Animated background circles */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neutral-400/5 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-neutral-300/5 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
-      {/* Video Section */}
       <div className="py-12 relative z-10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="relative w-full h-[50vh] flex items-center justify-center overflow-hidden rounded-2xl">
@@ -146,8 +142,8 @@ export default function ProjectDetailsPage({
                     <>
                       {project.video.startsWith('http') ? (
                         <>
-                          <source src={project.video} type="video/mp4" />
-                          <source src={project.video} type="video/quicktime" />
+                          <source src={`/api/video-proxy?url=${encodeURIComponent(project.video)}`} type="video/mp4" />
+                          <source src={`/api/video-proxy?url=${encodeURIComponent(project.video)}`} type="video/quicktime" />
                         </>
                       ) : (
                         <>
@@ -207,8 +203,8 @@ export default function ProjectDetailsPage({
                       <>
                         {project.video2.startsWith('http') ? (
                           <>
-                            <source src={project.video2} type="video/mp4" />
-                            <source src={project.video2} type="video/quicktime" />
+                            <source src={`/api/video-proxy?url=${encodeURIComponent(project.video2)}`} type="video/mp4" />
+                            <source src={`/api/video-proxy?url=${encodeURIComponent(project.video2)}`} type="video/quicktime" />
                           </>
                         ) : (
                           <>
@@ -242,7 +238,6 @@ export default function ProjectDetailsPage({
             )}
           </div>
 
-          {/* Content Under Video */}
           <div className="mt-12 space-y-8 px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

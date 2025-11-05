@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import jwt from "jsonwebtoken";
+
+const getIDriveClient = () => {
+  if (
+    process.env.IDRIVE_ENDPOINT &&
+    process.env.IDRIVE_ACCESS_KEY_ID &&
+    process.env.IDRIVE_SECRET_ACCESS_KEY
+  ) {
+    return new S3Client({
+        region: process.env.IDRIVE_REGION || "us-west-1",
+        endpoint: `https://${process.env.IDRIVE_ENDPOINT}`,
+        forcePathStyle: true,
+        credentials: {
+        accessKeyId: process.env.IDRIVE_ACCESS_KEY_ID,
+        secretAccessKey: process.env.IDRIVE_SECRET_ACCESS_KEY,
+      },
+    });
+  }
+  return null;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,12 +46,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique filename
     const timestamp = Date.now();
     const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const filename = `videos/${timestamp}_${originalName}`;
 
-    // Upload to Vercel Blob Storage
+    const idriveClient = getIDriveClient();
+    
+    if (idriveClient && process.env.IDRIVE_BUCKET_NAME) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const command = new PutObjectCommand({
+          Bucket: process.env.IDRIVE_BUCKET_NAME,
+          Key: filename,
+          Body: buffer,
+          ContentType: file.type || "video/mp4",
+        });
+
+        await idriveClient.send(command);
+
+        const publicUrl = `https://${process.env.IDRIVE_ENDPOINT}/${process.env.IDRIVE_BUCKET_NAME}/${filename}`;
+
+        return NextResponse.json(
+          { 
+            url: publicUrl,
+            filename: filename,
+            storage: "idrive"
+          },
+          { status: 200 }
+        );
+      } catch (idriveError) {
+        console.error("IDrive e2 upload failed, falling back to Vercel Blob:", idriveError);
+      }
+    }
+
     const blob = await put(filename, file, {
       access: "public",
       contentType: file.type || "video/mp4",
@@ -40,7 +89,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         url: blob.url,
-        filename: filename
+        filename: filename,
+        storage: "vercel"
       },
       { status: 200 }
     );

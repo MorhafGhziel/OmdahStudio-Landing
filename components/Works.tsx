@@ -50,7 +50,6 @@ export function Works() {
   const featuredWork = works.find((work) => work.featured);
   const gridWorks = works.filter((work) => !work.featured);
 
-  // Handle video auto-play when in view
   useEffect(() => {
     if (!videoRef.current) return;
 
@@ -60,17 +59,14 @@ export function Works() {
         entries.forEach((entry) => {
           try {
             if (entry.isIntersecting) {
-              // Video is in view, start playing
               video.muted = false;
               setIsMuted(false);
               video.play().catch(() => {
-                // If autoplay with sound fails, try muted
                 video.muted = true;
                 setIsMuted(true);
                 video.play().catch(() => {});
               });
             } else {
-              // Video is out of view, pause
               if (!video.paused) {
                 video.pause();
               }
@@ -81,8 +77,8 @@ export function Works() {
         });
       },
       {
-        threshold: 0.5, // Play when 50% of video is visible
-        rootMargin: "0px 0px -10% 0px", // Start playing slightly before fully in view
+        threshold: 0.5,
+        rootMargin: "0px 0px -10% 0px",
       }
     );
 
@@ -93,13 +89,11 @@ export function Works() {
     };
   }, [featuredWork?.video]);
 
-  // Handle fullscreen change events
   useEffect(() => {
     const handleFullscreenChange = () => {
       const video = videoRef.current;
       if (video) {
         if (!document.fullscreenElement) {
-          // Exited fullscreen, restore custom controls
           video.controls = false;
           video.style.objectFit = "cover";
         }
@@ -299,35 +293,86 @@ export function Works() {
                         setIsPlaying(false);
                       }}
                       onError={(e) => {
-                        console.error("Video error:", e);
-                        console.error("Video src:", featuredWork.video);
+                        const video = e.currentTarget;
+                        const error = video.error;
+                        console.group("🎥 Video Error Details");
+                        console.error("Featured Work:", featuredWork?.title);
+                        console.error("Video URL:", featuredWork?.video);
+                        console.error("Video currentSrc:", video.currentSrc);
+                        console.error(
+                          "Video networkState:",
+                          video.networkState
+                        );
+                        console.error("Video readyState:", video.readyState);
+                        if (error) {
+                          console.error("MediaError code:", error.code);
+                          console.error("MediaError message:", error.message);
+                          const errorMessages = {
+                            1: "MEDIA_ERR_ABORTED - The user aborted the video",
+                            2: "MEDIA_ERR_NETWORK - A network error occurred",
+                            3: "MEDIA_ERR_DECODE - The video could not be decoded",
+                            4: "MEDIA_ERR_SRC_NOT_SUPPORTED - The video format is not supported",
+                          };
+                          console.error(
+                            "Error meaning:",
+                            errorMessages[
+                              error.code as keyof typeof errorMessages
+                            ] || "Unknown error"
+                          );
+                        }
+                        console.groupEnd();
                         setVideoLoading(false);
                         setVideoError(true);
                       }}
                     >
                       {featuredWork.video && (
                         <>
-                          {featuredWork.video.startsWith('http') ? (
+                          {featuredWork.video.startsWith("http") ? (
                             <>
-                              {featuredWork.video.endsWith('.mp4') && (
-                                <source src={featuredWork.video} type="video/mp4" />
-                              )}
-                              {featuredWork.video.endsWith('.mov') && (
-                                <source src={featuredWork.video} type="video/quicktime" />
-                              )}
+                              {/* Use proxy for all HTTP URLs (Blob Storage, IDrive e2, etc.) */}
+                              <source
+                                src={`/api/video-proxy?url=${encodeURIComponent(
+                                  featuredWork.video
+                                )}`}
+                                type="video/mp4"
+                              />
+                              <source
+                                src={`/api/video-proxy?url=${encodeURIComponent(
+                                  featuredWork.video
+                                )}`}
+                                type="video/quicktime"
+                              />
                             </>
                           ) : (
                             <>
-                              {featuredWork.video.endsWith('.mp4') && (
+                              {featuredWork.video.endsWith(".mp4") && (
                                 <>
-                                  <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/mp4" />
-                                  <source src={featuredWork.video} type="video/mp4" />
+                                  <source
+                                    src={`/api/video/${featuredWork.video.replace(
+                                      "/videos/",
+                                      ""
+                                    )}`}
+                                    type="video/mp4"
+                                  />
+                                  <source
+                                    src={featuredWork.video}
+                                    type="video/mp4"
+                                  />
                                 </>
                               )}
-                              {featuredWork.video.endsWith('.mov') && (
+                              {featuredWork.video.endsWith(".mov") && (
                                 <>
-                                  <source src={`/api/video/${featuredWork.video.replace('/videos/', '')}`} type="video/quicktime" />
-                                  <source src={featuredWork.video} type="video/quicktime" />
+                                  <source
+                                    src={`/api/video/${featuredWork.video.replace(
+                                      "/videos/",
+                                      ""
+                                    )}`}
+                                    type="video/quicktime"
+                                  />
+                                  <source
+                                    src={featuredWork.video}
+                                    type="video/quicktime"
+                                  />
                                 </>
                               )}
                             </>
@@ -349,7 +394,6 @@ export function Works() {
                             video.muted = false;
                             setIsMuted(false);
                             video.play().catch(() => {
-                              // If autoplay with sound fails, try muted
                               video.muted = true;
                               setIsMuted(true);
                               video.play().catch(() => {});
@@ -378,7 +422,6 @@ export function Works() {
                       )}
                     </button>
 
-                    {/* Audio Toggle Button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -409,13 +452,11 @@ export function Works() {
                       )}
                     </button>
 
-                    {/* Fullscreen Button */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         const video = videoRef.current;
                         if (video) {
-                          // Enable native controls for fullscreen
                           video.controls = true;
                           video.style.objectFit = "contain";
 
