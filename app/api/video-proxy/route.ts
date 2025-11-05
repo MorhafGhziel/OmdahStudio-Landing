@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { Readable } from "stream";
 
 export async function GET(request: NextRequest) {
   try {
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
 
         const chunks: Buffer[] = [];
         
-        const streamBody = stream as any;
+        const streamBody = stream as Readable;
         for await (const chunk of streamBody) {
           chunks.push(Buffer.from(chunk));
         }
@@ -134,18 +135,19 @@ export async function GET(request: NextRequest) {
             "Access-Control-Allow-Headers": "Range",
           },
         });
-      } catch (s3Error: any) {
+      } catch (s3Error: unknown) {
+        const error = s3Error as { message?: string; name?: string; Code?: string; code?: string; $metadata?: { httpStatusCode?: number } };
         console.error("[Video Proxy] Error fetching from IDrive e2:", s3Error);
         console.error("[Video Proxy] Error details:", {
-          message: s3Error.message,
-          name: s3Error.name,
-          code: s3Error.Code || s3Error.code,
-          statusCode: s3Error.$metadata?.httpStatusCode,
+          message: error.message,
+          name: error.name,
+          code: error.Code || error.code,
+          statusCode: error.$metadata?.httpStatusCode,
         });
         
-        if (s3Error.Code === 'NoSuchKey' || s3Error.Code === 'AccessDenied' || s3Error.$metadata?.httpStatusCode === 404) {
+        if (error.Code === 'NoSuchKey' || error.Code === 'AccessDenied' || error.$metadata?.httpStatusCode === 404) {
           return NextResponse.json(
-            { error: `Video not found or access denied: ${s3Error.message}` },
+            { error: `Video not found or access denied: ${error.message || 'Unknown error'}` },
             { status: 404 }
           );
         }
