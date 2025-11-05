@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import jwt from "jsonwebtoken";
+
+const getIDriveClient = () => {
+  if (
+    process.env.IDRIVE_ENDPOINT &&
+    process.env.IDRIVE_ACCESS_KEY_ID &&
+    process.env.IDRIVE_SECRET_ACCESS_KEY
+  ) {
+    return new S3Client({
+      region: process.env.IDRIVE_REGION || "us-west-1",
+      endpoint: `https://${process.env.IDRIVE_ENDPOINT}`,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: process.env.IDRIVE_ACCESS_KEY_ID,
+        secretAccessKey: process.env.IDRIVE_SECRET_ACCESS_KEY,
+      },
+    });
+  }
+  return null;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,22 +45,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Generate unique filename
     const timestamp = Date.now();
     const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `${timestamp}_${originalName}`;
+    const filename = `images/${timestamp}_${originalName}`;
 
-    // Save to public/images directory
-    const path = join(process.cwd(), "public", "images", filename);
-    await writeFile(path, buffer);
+    const idriveClient = getIDriveClient();
+    
+    if (!idriveClient || !process.env.IDRIVE_BUCKET_NAME) {
+      return NextResponse.json(
+        { error: "IDrive e2 storage not configured" },
+        { status: 500 }
+      );
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.IDRIVE_BUCKET_NAME,
+      Key: filename,
+      Body: buffer,
+      ContentType: file.type || "image/png",
+    });
+
+    await idriveClient.send(command);
+
+    const publicUrl = `https://s3.${process.env.IDRIVE_REGION || "us-west-1"}.idrivee2.com/${process.env.IDRIVE_BUCKET_NAME}/${filename}`;
 
     return NextResponse.json(
       { 
-        url: `/images/${filename}`,
-        filename: filename
+        url: publicUrl,
+        filename: filename,
+        storage: "idrive"
       },
       { status: 200 }
     );

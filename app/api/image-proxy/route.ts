@@ -22,27 +22,27 @@ function streamToReadableStream(stream: Readable): ReadableStream<Uint8Array> {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const videoUrl = searchParams.get("url");
+    const imageUrl = searchParams.get("url");
 
-    if (!videoUrl) {
+    if (!imageUrl) {
       return NextResponse.json(
-        { error: "Missing video URL parameter" },
+        { error: "Missing image URL parameter" },
         { status: 400 }
       );
     }
 
-    const isIDrive = videoUrl.includes("idrivee2.com");
+    const isIDrive = imageUrl.includes("idrivee2.com");
     
     if (!isIDrive) {
       return NextResponse.json(
-        { error: "Invalid video URL - must be from IDrive e2" },
+        { error: "Invalid image URL - must be from IDrive e2" },
         { status: 400 }
       );
     }
 
     if (process.env.IDRIVE_ACCESS_KEY_ID && process.env.IDRIVE_SECRET_ACCESS_KEY) {
       try {
-        const url = new URL(videoUrl);
+        const url = new URL(imageUrl);
         const bucket = process.env.IDRIVE_BUCKET_NAME || 'omdah';
         const pathParts = url.pathname.substring(1).split('/').filter(Boolean);
         
@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
           key = pathParts.slice(1).join('/') || pathParts.join('/');
         }
         
-        if (!key.startsWith('videos/') && !key.includes('/')) {
-          key = `videos/${key}`;
+        if (!key.startsWith('images/') && !key.includes('/')) {
+          key = `images/${key}`;
         }
 
         const s3Client = new S3Client({
@@ -67,18 +67,16 @@ export async function GET(request: NextRequest) {
           },
         });
 
-        const range = request.headers.get("range");
         const command = new GetObjectCommand({
           Bucket: bucket,
           Key: key,
-          ...(range && { Range: range }),
         });
 
         const response = await s3Client.send(command);
         
         if (!response.Body) {
           return NextResponse.json(
-            { error: "Video not found" },
+            { error: "Image not found" },
             { status: 404 }
           );
         }
@@ -86,30 +84,18 @@ export async function GET(request: NextRequest) {
         const stream = response.Body as Readable;
         const readableStream = streamToReadableStream(stream);
 
-        const contentType = response.ContentType || "video/mp4";
+        const contentType = response.ContentType || "image/png";
         const contentLength = response.ContentLength?.toString();
-        const acceptRanges = response.AcceptRanges || "bytes";
-        const contentRange = response.ContentRange;
 
         const headers = new Headers({
           "Content-Type": contentType,
-          "Accept-Ranges": acceptRanges,
           "Cache-Control": "public, max-age=31536000, immutable",
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-          "Access-Control-Allow-Headers": "Range",
         });
 
         if (contentLength) {
           headers.set("Content-Length", contentLength);
-        }
-
-        if (range && contentRange) {
-          headers.set("Content-Range", contentRange);
-          return new NextResponse(readableStream, {
-            status: 206,
-            headers,
-          });
         }
 
         return new NextResponse(readableStream, {
@@ -120,7 +106,7 @@ export async function GET(request: NextRequest) {
         
         if (error.Code === 'NoSuchKey' || error.Code === 'AccessDenied' || error.$metadata?.httpStatusCode === 404) {
           return NextResponse.json(
-            { error: `Video not found or access denied: ${error.message || 'Unknown error'}` },
+            { error: `Image not found or access denied: ${error.message || 'Unknown error'}` },
             { status: 404 }
           );
         }
@@ -132,9 +118,8 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   } catch (error) {
-    console.error("Error proxying video:", error);
     return NextResponse.json(
-      { error: "Failed to proxy video" },
+      { error: "Failed to proxy image" },
       { status: 500 }
     );
   }
@@ -146,7 +131,6 @@ export async function OPTIONS() {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Headers": "Range",
     },
   });
 }

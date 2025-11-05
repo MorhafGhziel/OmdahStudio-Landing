@@ -102,8 +102,8 @@ export default function ProjectDetailsPage({
       </div>
       <div className="py-12 relative z-10">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="relative w-full h-[50vh] flex items-center justify-center overflow-hidden rounded-2xl">
-            {project.video ? (
+          <div className="relative w-full h-[50vh] flex items-center justify-center overflow-hidden rounded-2xl bg-black/50">
+            {project.video && project.video.trim() ? (
               <div className="w-full h-full flex gap-4">
                 <video
                   className="flex-1 h-full object-cover rounded-2xl"
@@ -228,13 +228,27 @@ export default function ProjectDetailsPage({
                   </video>
                 )}
               </div>
-            ) : (
+            ) : project.image && project.image.trim() ? (
               <Image
-                src={project.image}
+                src={
+                  project.image.startsWith("http") &&
+                  project.image.includes("idrivee2.com")
+                    ? `/api/image-proxy?url=${encodeURIComponent(project.image)}`
+                    : project.image
+                }
                 alt={project.title}
                 fill
                 className="object-cover rounded-2xl"
+                onError={(e) => {
+                  console.error("Image failed to load:", project.image);
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
               />
+            ) : (
+              <div className="flex items-center justify-center h-full text-white/40 font-ibm-plex-sans-arabic">
+                <p>لا توجد صورة أو فيديو متاح</p>
+              </div>
             )}
           </div>
 

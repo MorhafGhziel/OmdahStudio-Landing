@@ -578,13 +578,31 @@ export function Works() {
                 onMouseEnter={() => setHoveredWork(work.id)}
                 onMouseLeave={() => setHoveredWork(null)}
               >
-                <div className="relative w-full h-[280px] sm:h-[300px] md:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden">
-                  <Image
-                    src={work.image}
-                    alt={work.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                <div className="relative w-full h-[280px] sm:h-[300px] md:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden bg-black/50">
+                  {work.image && work.image.trim() ? (
+                    <Image
+                      src={
+                        work.image.startsWith("http") &&
+                        work.image.includes("idrivee2.com")
+                          ? `/api/image-proxy?url=${encodeURIComponent(
+                              work.image
+                            )}`
+                          : work.image
+                      }
+                      alt={work.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      onError={(e) => {
+                        console.error("Image failed to load:", work.image);
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-white/40 font-ibm-plex-sans-arabic">
+                      <p className="text-sm">لا توجد صورة</p>
+                    </div>
+                  )}
 
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />

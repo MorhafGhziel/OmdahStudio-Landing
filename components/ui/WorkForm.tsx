@@ -85,6 +85,9 @@ export function WorkForm({
       const workToSave = {
         ...formData,
         services,
+        image: formData.image?.trim() || undefined,
+        video: formData.video?.trim() || undefined,
+        video2: formData.video2?.trim() || undefined,
       };
 
       onSave(workToSave);
@@ -103,10 +106,13 @@ export function WorkForm({
     try {
       const url = await onVideoUpload(file);
       setFormData((prev) => ({ ...prev, video: url }));
+      alert("Video uploaded successfully!");
     } catch (error) {
       console.error("Error uploading video:", error);
+      alert("Failed to upload video. Please try again.");
     } finally {
       setUploadingVideo(false);
+      e.target.value = '';
     }
   };
 
@@ -120,10 +126,13 @@ export function WorkForm({
     try {
       const url = await onVideoUpload(file);
       setFormData((prev) => ({ ...prev, video2: url }));
+      alert("Video 2 uploaded successfully!");
     } catch (error) {
-      console.error("Error uploading video:", error);
+      console.error("Error uploading video 2:", error);
+      alert("Failed to upload video 2. Please try again.");
     } finally {
       setUploadingVideo(false);
+      e.target.value = '';
     }
   };
 
@@ -135,10 +144,13 @@ export function WorkForm({
     try {
       const url = await onImageUpload(file);
       setFormData((prev) => ({ ...prev, image: url }));
+      alert("Image uploaded successfully!");
     } catch (error) {
       console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
     } finally {
       setUploadingImage(false);
+      e.target.value = '';
     }
   };
 

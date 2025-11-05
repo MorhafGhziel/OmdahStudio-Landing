@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import jwt from "jsonwebtoken";
 
@@ -52,45 +51,32 @@ export async function POST(request: NextRequest) {
 
     const idriveClient = getIDriveClient();
     
-    if (idriveClient && process.env.IDRIVE_BUCKET_NAME) {
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-
-        const command = new PutObjectCommand({
-          Bucket: process.env.IDRIVE_BUCKET_NAME,
-          Key: filename,
-          Body: buffer,
-          ContentType: file.type || "video/mp4",
-        });
-
-        await idriveClient.send(command);
-
-        const publicUrl = `https://${process.env.IDRIVE_ENDPOINT}/${process.env.IDRIVE_BUCKET_NAME}/${filename}`;
-
-        return NextResponse.json(
-          { 
-            url: publicUrl,
-            filename: filename,
-            storage: "idrive"
-          },
-          { status: 200 }
-        );
-      } catch (idriveError) {
-        console.error("IDrive e2 upload failed, falling back to Vercel Blob:", idriveError);
-      }
+    if (!idriveClient || !process.env.IDRIVE_BUCKET_NAME) {
+      return NextResponse.json(
+        { error: "IDrive e2 storage not configured" },
+        { status: 500 }
+      );
     }
 
-    const blob = await put(filename, file, {
-      access: "public",
-      contentType: file.type || "video/mp4",
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const command = new PutObjectCommand({
+      Bucket: process.env.IDRIVE_BUCKET_NAME,
+      Key: filename,
+      Body: buffer,
+      ContentType: file.type || "video/mp4",
     });
+
+    await idriveClient.send(command);
+
+    const publicUrl = `https://s3.${process.env.IDRIVE_REGION || "us-west-1"}.idrivee2.com/${process.env.IDRIVE_BUCKET_NAME}/${filename}`;
 
     return NextResponse.json(
       { 
-        url: blob.url,
+        url: publicUrl,
         filename: filename,
-        storage: "vercel"
+        storage: "idrive"
       },
       { status: 200 }
     );
