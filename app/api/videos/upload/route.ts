@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 
 const getIDriveClient = () => {
   if (
-    process.env.IDRIVE_ENDPOINT &&
     process.env.IDRIVE_ACCESS_KEY_ID &&
     process.env.IDRIVE_SECRET_ACCESS_KEY
   ) {
@@ -55,9 +54,29 @@ export async function POST(request: NextRequest) {
 
     const idriveClient = getIDriveClient();
     
-    if (!idriveClient || !process.env.IDRIVE_BUCKET_NAME) {
+    if (!idriveClient) {
+      console.error("IDrive client not initialized. Missing credentials:", {
+        hasAccessKey: !!process.env.IDRIVE_ACCESS_KEY_ID,
+        hasSecretKey: !!process.env.IDRIVE_SECRET_ACCESS_KEY,
+        hasEndpoint: !!process.env.IDRIVE_ENDPOINT,
+        region: process.env.IDRIVE_REGION || "us-west-1"
+      });
       return NextResponse.json(
-        { error: "IDrive e2 storage not configured" },
+        { 
+          error: "IDrive e2 storage not configured",
+          message: "Missing IDrive e2 credentials. Please check environment variables."
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!process.env.IDRIVE_BUCKET_NAME) {
+      console.error("IDrive bucket name not configured");
+      return NextResponse.json(
+        { 
+          error: "IDrive e2 bucket not configured",
+          message: "IDRIVE_BUCKET_NAME environment variable is missing"
+        },
         { status: 500 }
       );
     }

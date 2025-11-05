@@ -57,9 +57,13 @@ export async function GET(request: NextRequest) {
           key = `images/${key}`;
         }
 
+        const endpoint = process.env.IDRIVE_ENDPOINT 
+          ? `https://${process.env.IDRIVE_ENDPOINT}`
+          : `https://s3.${process.env.IDRIVE_REGION || "us-west-1"}.idrivee2.com`;
+
         const s3Client = new S3Client({
           region: process.env.IDRIVE_REGION || "us-west-1",
-          endpoint: `https://${process.env.IDRIVE_ENDPOINT}`,
+          endpoint: endpoint,
           forcePathStyle: true,
           credentials: {
             accessKeyId: process.env.IDRIVE_ACCESS_KEY_ID,
