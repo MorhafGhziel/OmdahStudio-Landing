@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useAdmin } from "@/lib/admin-context";
-import { Loading } from "@/components/ui/Loading";
+import { ClientsSkeleton } from "./ui/ClientsSkeleton";
 
 interface Client {
   _id: string;
@@ -147,16 +147,7 @@ export function Clients() {
   };
 
   if (loading) {
-    return (
-      <section
-        id="clients"
-        className="py-8 sm:py-12 md:py-16 bg-black text-white"
-      >
-        <div className="container mx-auto px-4 sm:px-6">
-          <Loading />
-        </div>
-      </section>
-    );
+    return <ClientsSkeleton />;
   }
 
   // Split clients into two rows - first 8 in row1, remaining in row2

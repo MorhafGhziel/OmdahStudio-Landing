@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { ServiceCard } from "./ui/ServiceCard";
 import { useAdmin } from "@/lib/admin-context";
 import { ServiceType } from "@/lib/types";
-import { Loading } from "@/components/ui/Loading";
+import { ServicesSkeleton } from "./ui/ServicesSkeleton";
 
 interface ServicesContent {
   badge: string;
@@ -160,6 +160,10 @@ export function Services() {
     setTempValue(servicesContent[field]);
   };
 
+  if (loading) {
+    return <ServicesSkeleton />;
+  }
+
   return (
     <section
       id="services"
@@ -196,10 +200,7 @@ export function Services() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-7xl relative">
-        {loading ? (
-          <Loading />
-        ) : (
-          <>
+        <>
             <div className="text-center mb-12 sm:mb-16 md:mb-20">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -471,8 +472,7 @@ export function Services() {
                 </button>
               )}
             </motion.div>
-          </>
-        )}
+        </>
       </div>
 
       {/* Add/Edit Form Modal */}

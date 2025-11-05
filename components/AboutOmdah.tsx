@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useAdmin } from "@/lib/admin-context";
-import { Loading } from "@/components/ui/Loading";
+import { AboutOmdahSkeleton } from "./ui/AboutOmdahSkeleton";
 
 interface HeroContent {
   title: string;
@@ -95,7 +95,7 @@ export function AboutOmdah() {
       transition={{ duration: 0.8 }}
     >
       {loading ? (
-        <Loading />
+        <AboutOmdahSkeleton />
       ) : (
         <>
           {/* Background Effects */}
