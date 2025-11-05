@@ -3,20 +3,27 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
+import { useAdmin } from "@/lib/admin-context";
+import { WorkForm } from "./ui/WorkForm";
 
 interface Work {
+  _id?: string;
   id: string;
   title: string;
   category: string;
   image: string;
   video?: string;
+  video2?: string;
   client: string;
   year: string;
+  description?: string;
+  services?: string[];
   featured?: boolean;
   link?: string;
 }
 
 export function Works() {
+  const { isAdmin } = useAdmin();
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredWork, setHoveredWork] = useState<string | null>(null);
@@ -24,26 +31,28 @@ export function Works() {
   const [videoError, setVideoError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [editingWork, setEditingWork] = useState<Work | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchWorks = async () => {
-      try {
-        const response = await fetch("/api/works");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.works && Array.isArray(data.works)) {
-            setWorks(data.works);
-          }
+  const fetchWorks = async () => {
+    try {
+      const response = await fetch("/api/works");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.works && Array.isArray(data.works)) {
+          setWorks(data.works);
         }
-      } catch (error) {
-        console.error("Error fetching works:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching works:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchWorks();
   }, []);
 
@@ -528,6 +537,27 @@ export function Works() {
           </motion.div>
         )}
 
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 text-center px-4 sm:px-6 md:px-8"
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setEditingWork(null);
+                setShowForm(true);
+              }}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 cursor-pointer text-white rounded-lg transition-all font-ibm-plex-sans-arabic font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              إضافة عمل جديد
+            </button>
+          </motion.div>
+        )}
+
         {/* Grid Works */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -536,7 +566,7 @@ export function Works() {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="px-4 sm:px-6 md:px-8"
         >
-          <div className="flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:pb-0">
+          <div className="scrollable-works flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory">
             {gridWorks.map((work, index) => (
               <motion.div
                 key={work.id}
@@ -544,11 +574,11 @@ export function Works() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-                className="group flex-shrink-0 w-[280px] sm:w-[300px] md:w-[600px] snap-center lg:flex-shrink lg:w-auto"
+                className="group flex-shrink-0 w-[280px] sm:w-[300px] md:w-[400px] snap-center"
                 onMouseEnter={() => setHoveredWork(work.id)}
                 onMouseLeave={() => setHoveredWork(null)}
               >
-                <div className="relative w-full h-[280px] sm:h-[300px] md:h-[600px] lg:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden">
+                <div className="relative w-full h-[280px] sm:h-[300px] md:h-[400px] rounded-xl sm:rounded-2xl overflow-hidden">
                   <Image
                     src={work.image}
                     alt={work.title}
@@ -580,17 +610,8 @@ export function Works() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log(
-                          "Button clicked for work:",
-                          work.title,
-                          "Link:",
-                          work.link
-                        );
                         if (work.link) {
-                          console.log("Navigating to:", work.link);
                           window.location.href = work.link;
-                        } else {
-                          console.log("No link found for work:", work.title);
                         }
                       }}
                       className="px-6 py-3 bg-white text-black font-ibm-plex-sans-arabic text-sm font-semibold rounded-full hover:bg-white/90 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer"
@@ -599,6 +620,67 @@ export function Works() {
                       عرض التفاصيل
                     </button>
                   </div>
+
+                  {isAdmin && (
+                    <div className="absolute top-2 right-2 z-50">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log("Edit button clicked for:", work.title);
+                            setEditingWork(work);
+                            setShowForm(true);
+                          }}
+                          className="px-3 py-1 bg-blue-500 cursor-pointer text-white rounded-lg hover:bg-blue-600 transition-all text-xs font-semibold shadow-lg"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const token = localStorage.getItem("adminToken");
+                            if (!token) {
+                              alert("Not authenticated");
+                              return;
+                            }
+
+                            if (
+                              confirm(
+                                "Are you sure you want to delete this work?"
+                              )
+                            ) {
+                              try {
+                                const response = await fetch(
+                                  `/api/works?id=${work._id}`,
+                                  {
+                                    method: "DELETE",
+                                    headers: {
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                  }
+                                );
+
+                                if (response.ok) {
+                                  await fetchWorks();
+                                } else {
+                                  const error = await response.json();
+                                  alert(error.error || "Failed to delete work");
+                                }
+                              } catch (error) {
+                                console.error("Error deleting work:", error);
+                                alert("Failed to delete work");
+                              }
+                            }
+                          }}
+                          className="px-3 py-1 bg-red-500 cursor-pointer text-white rounded-lg hover:bg-red-600 transition-all text-xs font-semibold shadow-lg"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Hover Effect */}
                   <motion.div
@@ -613,6 +695,145 @@ export function Works() {
           </div>
         </motion.div>
       </div>
+
+      {isAdmin && showForm && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999]"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowForm(false);
+              setEditingWork(null);
+            }
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold font-ibm-plex-sans-arabic text-white">
+                {editingWork ? "Edit Work" : "Add New Work"}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingWork(null);
+                }}
+                className="px-3 py-1 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all cursor-pointer"
+              >
+                ×
+              </button>
+            </div>
+            <WorkForm
+              key={editingWork?._id || editingWork?.id || "new"}
+              work={editingWork}
+              onSave={async (workData) => {
+                const token = localStorage.getItem("adminToken");
+                if (!token) {
+                  alert("Not authenticated. Please login again.");
+                  return;
+                }
+
+                try {
+                  const url = "/api/works";
+                  const method = editingWork ? "PUT" : "POST";
+
+                  console.log("Saving work:", {
+                    method,
+                    workData,
+                    editingWork,
+                  });
+
+                  const response = await fetch(url, {
+                    method,
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(
+                      editingWork
+                        ? { ...workData, _id: editingWork._id }
+                        : workData
+                    ),
+                  });
+
+                  const responseData = await response.json();
+
+                  if (response.ok) {
+                    console.log("Work saved successfully:", responseData);
+                    setShowForm(false);
+                    setEditingWork(null);
+                    await fetchWorks();
+                  } else {
+                    console.error("Failed to save work:", responseData);
+                    alert(
+                      responseData.error ||
+                        responseData.details?.[0]?.message ||
+                        "Failed to save work"
+                    );
+                  }
+                } catch (error) {
+                  console.error("Error saving work:", error);
+                  alert(
+                    "Failed to save work: " +
+                      (error instanceof Error ? error.message : "Unknown error")
+                  );
+                }
+              }}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingWork(null);
+              }}
+              onVideoUpload={async (file) => {
+                const token = localStorage.getItem("adminToken");
+                if (!token) throw new Error("Not authenticated");
+
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const response = await fetch("/api/videos/upload", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: formData,
+                });
+
+                if (!response.ok) {
+                  throw new Error("Failed to upload video");
+                }
+
+                const data = await response.json();
+                return data.url;
+              }}
+              onImageUpload={async (file) => {
+                const token = localStorage.getItem("adminToken");
+                if (!token) throw new Error("Not authenticated");
+
+                const formData = new FormData();
+                formData.append("file", file);
+
+                const response = await fetch("/api/upload", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: formData,
+                });
+
+                if (!response.ok) {
+                  throw new Error("Failed to upload image");
+                }
+
+                const data = await response.json();
+                return data.url;
+              }}
+            />
+          </motion.div>
+        </div>
+      )}
     </section>
   );
 }

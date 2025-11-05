@@ -1,5 +1,43 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/lib/mongodb";
+import jwt from "jsonwebtoken";
+import { z } from "zod";
+import { ObjectId } from "mongodb";
+
+function verifyAuth(request: NextRequest): { valid: boolean; error?: string } {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { valid: false, error: "Unauthorized" };
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+    return { valid: true };
+  } catch {
+    return { valid: false, error: "Invalid token" };
+  }
+}
+
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+const workSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  category: z.string().min(1, "Category is required"),
+  client: z.string().min(1, "Client is required"),
+  year: z.string().min(1, "Year is required"),
+  description: z.string().min(1, "Description is required"),
+  image: z.string().optional(),
+  video: z.string().optional(),
+  video2: z.string().optional(),
+  featured: z.boolean().optional(),
+  services: z.array(z.string()).optional(),
+});
 
 // Default works data
 const defaultWorks = [
@@ -194,7 +232,166 @@ export async function GET() {
     return NextResponse.json({ works: updatedWorks }, { status: 200 });
   } catch (error) {
     console.error("Error fetching works:", error);
-    // Return default works if database fails
     return NextResponse.json({ works: defaultWorks }, { status: 200 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const auth = verifyAuth(request);
+    if (!auth.valid) {
+      return NextResponse.json({ error: auth.error }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const validatedData = workSchema.parse(body);
+
+    const db = await getDatabase();
+    const slug = generateSlug(validatedData.title);
+    const link = `/works/${slug}`;
+
+    if (validatedData.featured) {
+      await db.collection("works").updateMany(
+        { featured: true },
+        { $set: { featured: false, updatedAt: new Date() } }
+      );
+    }
+
+    const newWork = {
+      ...validatedData,
+      id: new Date().getTime().toString(),
+      link,
+      services: validatedData.services || [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await db.collection("works").insertOne(newWork);
+
+    return NextResponse.json(
+      { success: true, work: { ...newWork, _id: result.insertedId } },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error creating work:", error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.issues },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Failed to create work" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const auth = verifyAuth(request);
+    if (!auth.valid) {
+      return NextResponse.json({ error: auth.error }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { _id, ...workData } = body;
+
+    if (!_id) {
+      return NextResponse.json(
+        { error: "Work ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const validatedData = workSchema.parse(workData);
+
+    const db = await getDatabase();
+
+    if (validatedData.featured) {
+      await db.collection("works").updateMany(
+        { featured: true, _id: { $ne: new ObjectId(_id) } },
+        { $set: { featured: false, updatedAt: new Date() } }
+      );
+    }
+
+    const slug = generateSlug(validatedData.title);
+    const link = `/works/${slug}`;
+
+    const updateData = {
+      ...validatedData,
+      link,
+      services: validatedData.services || [],
+      updatedAt: new Date(),
+    };
+
+    const result = await db.collection("works").updateOne(
+      { _id: new ObjectId(_id) },
+      { $set: updateData }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: "Work not found" }, { status: 404 });
+    }
+
+    const updatedWork = await db.collection("works").findOne({
+      _id: new ObjectId(_id),
+    });
+
+    return NextResponse.json(
+      { success: true, work: updatedWork },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating work:", error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.issues },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Failed to update work" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const auth = verifyAuth(request);
+    if (!auth.valid) {
+      return NextResponse.json({ error: auth.error }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Work ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const db = await getDatabase();
+    const result = await db.collection("works").deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "Work not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      { success: true, message: "Work deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting work:", error);
+    return NextResponse.json(
+      { error: "Failed to delete work" },
+      { status: 500 }
+    );
   }
 }
