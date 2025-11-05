@@ -8,6 +8,15 @@
     },
     "app/api/video/[...path]/route.ts": {
       "maxDuration": 60
+    },
+    "app/api/video-proxy/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/videos/upload/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/upload/route.ts": {
+      "maxDuration": 60
     }
   }
 }

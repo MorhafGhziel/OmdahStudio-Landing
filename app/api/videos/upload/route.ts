@@ -8,11 +8,15 @@ const getIDriveClient = () => {
     process.env.IDRIVE_ACCESS_KEY_ID &&
     process.env.IDRIVE_SECRET_ACCESS_KEY
   ) {
+    const endpoint = process.env.IDRIVE_ENDPOINT 
+      ? `https://${process.env.IDRIVE_ENDPOINT}`
+      : `https://s3.${process.env.IDRIVE_REGION || "us-west-1"}.idrivee2.com`;
+    
     return new S3Client({
-        region: process.env.IDRIVE_REGION || "us-west-1",
-        endpoint: `https://${process.env.IDRIVE_ENDPOINT}`,
-        forcePathStyle: true,
-        credentials: {
+      region: process.env.IDRIVE_REGION || "us-west-1",
+      endpoint: endpoint,
+      forcePathStyle: true,
+      credentials: {
         accessKeyId: process.env.IDRIVE_ACCESS_KEY_ID,
         secretAccessKey: process.env.IDRIVE_SECRET_ACCESS_KEY,
       },
@@ -82,8 +86,16 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error uploading video:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorDetails = error instanceof Error ? error.stack : String(error);
+    console.error("Error details:", errorDetails);
+    
     return NextResponse.json(
-      { error: "Failed to upload video" },
+      { 
+        error: "Failed to upload video",
+        message: errorMessage,
+        details: process.env.NODE_ENV === "development" ? errorDetails : undefined
+      },
       { status: 500 }
     );
   }

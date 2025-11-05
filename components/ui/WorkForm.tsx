@@ -102,6 +102,12 @@ export function WorkForm({
     const file = e.target.files?.[0];
     if (!file || !onVideoUpload) return;
 
+    if (file.size > 500 * 1024 * 1024) {
+      alert("Video file is too large. Maximum size is 500MB.");
+      e.target.value = '';
+      return;
+    }
+
     setUploadingVideo(true);
     try {
       const url = await onVideoUpload(file);
@@ -109,7 +115,8 @@ export function WorkForm({
       alert("Video uploaded successfully!");
     } catch (error) {
       console.error("Error uploading video:", error);
-      alert("Failed to upload video. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      alert(`Failed to upload video: ${errorMessage}`);
     } finally {
       setUploadingVideo(false);
       e.target.value = '';
@@ -122,6 +129,12 @@ export function WorkForm({
     const file = e.target.files?.[0];
     if (!file || !onVideoUpload) return;
 
+    if (file.size > 500 * 1024 * 1024) {
+      alert("Video file is too large. Maximum size is 500MB.");
+      e.target.value = '';
+      return;
+    }
+
     setUploadingVideo(true);
     try {
       const url = await onVideoUpload(file);
@@ -129,7 +142,8 @@ export function WorkForm({
       alert("Video 2 uploaded successfully!");
     } catch (error) {
       console.error("Error uploading video 2:", error);
-      alert("Failed to upload video 2. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      alert(`Failed to upload video 2: ${errorMessage}`);
     } finally {
       setUploadingVideo(false);
       e.target.value = '';

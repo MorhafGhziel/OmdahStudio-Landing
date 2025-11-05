@@ -820,7 +820,12 @@ export function Works() {
                 });
 
                 if (!response.ok) {
-                  throw new Error("Failed to upload video");
+                  const errorData = await response.json().catch(() => ({}));
+                  const errorMessage =
+                    errorData.message ||
+                    errorData.error ||
+                    "Failed to upload video";
+                  throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
@@ -842,7 +847,12 @@ export function Works() {
                 });
 
                 if (!response.ok) {
-                  throw new Error("Failed to upload image");
+                  const errorData = await response.json().catch(() => ({}));
+                  const errorMessage =
+                    errorData.message ||
+                    errorData.error ||
+                    "Failed to upload image";
+                  throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
