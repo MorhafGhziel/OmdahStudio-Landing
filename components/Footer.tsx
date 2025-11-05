@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAdmin } from "@/lib/admin-context";
+import { FooterSkeleton } from "./ui/FooterSkeleton";
 
 interface FooterContent {
   tagline: string;
@@ -88,17 +89,7 @@ export const Footer = () => {
   };
 
   if (loading) {
-    return (
-      <footer className="w-full bg-[#0a0a0a] text-white py-8 sm:py-12 border-t border-gray-400/20">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-center py-8">
-            <div className="relative w-8 h-8">
-              <div className="absolute inset-0 border-2 border-white/20 rounded-full animate-spin border-t-white"></div>
-            </div>
-          </div>
-        </div>
-      </footer>
-    );
+    return <FooterSkeleton />;
   }
 
   const currentYear = new Date().getFullYear();
