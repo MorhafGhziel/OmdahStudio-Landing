@@ -20,6 +20,16 @@ interface ServiceCardProps {
   onClick: () => void;
 }
 
+// Convert English digits to Arabic digits and remove leading zeros
+const toArabicNumerals = (str: string): string => {
+  const arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  // Remove leading zeros by parsing as integer, then convert to Arabic
+  const num = parseInt(str, 10);
+  return num
+    .toString()
+    .replace(/\d/g, (digit) => arabicDigits[parseInt(digit)]);
+};
+
 export function ServiceCard({
   service,
   index,
@@ -66,8 +76,8 @@ export function ServiceCard({
               {service.title}
             </h3>
           </div>
-          <span className="text-sm sm:text-base text-white/50 font-ibm-plex-sans-arabic">
-            {service.id}
+          <span className="text-lg sm:text-xl text-white/50 font-ibm-plex-sans-arabic">
+            {toArabicNumerals(service.id)}
           </span>
         </div>
 
