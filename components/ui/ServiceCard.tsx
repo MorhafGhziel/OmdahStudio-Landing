@@ -57,7 +57,7 @@ export function ServiceCard({
       `}
       >
         {/* Service Header */}
-        <div className="flex items-start justify-between mb-4 sm:mb-5 md:mb-6 flex-row-reverse">
+        <div className="flex items-start justify-between mb-4 sm:mb-5 md:mb-6">
           <div className="text-right">
             <span className="inline-block px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-ibm-plex-sans-arabic bg-white/10 rounded-full text-white/80 mb-2 sm:mb-3">
               {service.category}
