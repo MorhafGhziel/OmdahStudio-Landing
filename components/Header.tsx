@@ -118,8 +118,35 @@ export function Header() {
             )}
 
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative flex items-center gap-4"
+            >
+              <Image
+                src="/icons/logo_white_v2.svg"
+                alt="Omdah Logo"
+                width={120}
+                height={40}
+                className="h-26 w-auto"
+              />
+
+              {/* Admin Logout Button */}
+              {isAdmin && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  onClick={logout}
+                  className="px-3 py-1 bg-red-500/20 text-red-300 rounded text-xs hover:bg-red-500/30 transition-all font-ibm-plex-sans-arabic border border-red-500/30"
+                >
+                  Logout
+                </motion.button>
+              )}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="hidden md:flex items-center gap-12"
             >
@@ -149,33 +176,6 @@ export function Header() {
                   </div>
                 );
               })}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="relative flex items-center gap-4"
-            >
-              <Image
-                src="/icons/logo_white_v2.svg"
-                alt="Omdah Logo"
-                width={120}
-                height={40}
-                className="h-26 w-auto"
-              />
-
-              {/* Admin Logout Button */}
-              {isAdmin && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  onClick={logout}
-                  className="px-3 py-1 bg-red-500/20 text-red-300 rounded text-xs hover:bg-red-500/30 transition-all font-ibm-plex-sans-arabic border border-red-500/30"
-                >
-                  Logout
-                </motion.button>
-              )}
             </motion.div>
 
             <motion.button
