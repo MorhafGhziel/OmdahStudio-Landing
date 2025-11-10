@@ -57,8 +57,8 @@ export function ServiceCard({
       `}
       >
         {/* Service Header */}
-        <div className="flex items-start justify-between mb-4 sm:mb-5 md:mb-6">
-          <div>
+        <div className="flex items-start justify-between mb-4 sm:mb-5 md:mb-6 flex-row-reverse">
+          <div className="text-right">
             <span className="inline-block px-2.5 sm:px-3 py-1 text-[10px] sm:text-xs font-ibm-plex-sans-arabic bg-white/10 rounded-full text-white/80 mb-2 sm:mb-3">
               {service.category}
             </span>
@@ -72,12 +72,12 @@ export function ServiceCard({
         </div>
 
         {/* Service Description */}
-        <p className="text-white/70 font-ibm-plex-sans-arabic text-xs sm:text-sm mb-4 sm:mb-5 md:mb-6 line-clamp-3">
+        <p className="text-white/70 font-ibm-plex-sans-arabic text-xs sm:text-sm mb-4 sm:mb-5 md:mb-6 line-clamp-3 text-right">
           {service.description}
         </p>
 
         {/* Features */}
-        <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-auto">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-auto flex-row-reverse justify-end">
           {service.features.map((feature) => (
             <span
               key={feature}
