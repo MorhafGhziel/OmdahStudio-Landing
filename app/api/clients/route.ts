@@ -51,10 +51,15 @@ export async function GET() {
     return NextResponse.json({ clients }, { status: 200 });
   } catch (error) {
     console.error("Error fetching clients:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch clients" },
-      { status: 500 }
-    );
+    // Return default clients if database is unavailable
+    // This allows the page to still display content
+    const defaultClientsWithIds = defaultClients.map((client, index) => ({
+      _id: `default-${index}`,
+      ...client,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+    return NextResponse.json({ clients: defaultClientsWithIds }, { status: 200 });
   }
 }
 

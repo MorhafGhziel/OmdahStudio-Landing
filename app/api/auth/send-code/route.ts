@@ -3,7 +3,16 @@ import { z } from "zod";
 import { getDatabase } from "@/lib/mongodb";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only when API key is available
+const getResend = () => {
+  if (
+    process.env.RESEND_API_KEY &&
+    process.env.RESEND_API_KEY !== "dummy-key"
+  ) {
+    return new Resend(process.env.RESEND_API_KEY);
+  }
+  return null;
+};
 
 const sendCodeSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -17,10 +26,27 @@ export async function POST(request: NextRequest) {
     const { email } = validatedData;
 
     // Check if email is in allowed list
-    const db = await getDatabase();
-    const allowedEmail = await db.collection("allowedEmails").findOne({ 
-      email: email.toLowerCase() 
-    });
+    let db;
+    let allowedEmail;
+    
+    try {
+      db = await getDatabase();
+      allowedEmail = await db.collection("allowedEmails").findOne({ 
+        email: email.toLowerCase() 
+      });
+    } catch (dbError) {
+      console.error("Database connection error:", dbError);
+      // If MongoDB is unavailable, return a helpful error
+      return NextResponse.json(
+        { 
+          error: "Database connection unavailable. Please check MongoDB configuration.",
+          details: process.env.NODE_ENV === "development" 
+            ? "MongoDB authentication failed. Please update your MONGODB_URI in .env.local"
+            : undefined
+        },
+        { status: 503 }
+      );
+    }
 
     if (!allowedEmail) {
       // Don't reveal that email is not allowed - return success anyway for security
@@ -55,6 +81,23 @@ export async function POST(request: NextRequest) {
     });
 
     // Send email via Resend
+    const resend = getResend();
+    if (!resend) {
+      console.error("Resend API key not configured");
+      // Clean up the code if email service is not available
+      if (db) {
+        try {
+          await db.collection("authCodes").deleteOne({ email: email.toLowerCase(), code });
+        } catch (cleanupError) {
+          console.error("Error cleaning up code:", cleanupError);
+        }
+      }
+      return NextResponse.json(
+        { error: "Email service is not configured" },
+        { status: 503 }
+      );
+    }
+
     const fromEmail = process.env.RESEND_FROM_EMAIL || "info@omdah.sa";
     
     try {

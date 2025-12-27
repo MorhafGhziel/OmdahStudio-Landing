@@ -11,6 +11,109 @@ const serviceSchema = z.object({
   features: z.array(z.string()).min(1, "At least one feature is required"),
 });
 
+// Default services to show when database is unavailable
+const defaultServices = [
+  {
+    id: "01",
+    title: "تصوير سكتشات",
+    category: "تصوير",
+    description: "تصوير احترافي يطلع منتجاتك بأفضل صورة ممكنة. باستخدام أحدث التقنيات والمعايير، نخلي تفاصيلها واضحة وجمالها يبان من أول نظرة.",
+    features: [
+      "تصوير احترافي",
+      "تفاصيل واضحة",
+      "أحدث التقنيات",
+    ],
+  },
+  {
+    id: "02",
+    title: "مقاطع ريلز",
+    category: "إنتاج",
+    description: "رسوم متحركة تخطف الانتباه وتوصل رسالتك بطريقة سهلة وواضحة. حركات سلسة وجذابة تخلي محتواك تفاعلي ويشوفه كل اللي يشوفه.",
+    features: [
+      "رسوم متحركة",
+      "حركات سلسة",
+      "محتوى تفاعلي",
+    ],
+  },
+  {
+    id: "03",
+    title: "كتابة محتوى",
+    category: "محتوى",
+    description: "محتوى إبداعي يعبر عن هوية براندك بطريقة قريبة للناس. بأسلوب جذاب يناسب جمهورك ويوصل رسالتك ويخدم أهدافك التسويقية.",
+    features: [
+      "محتوى إبداعي",
+      "أسلوب جذاب",
+      "خدمة الأهداف التسويقية",
+    ],
+  },
+  {
+    id: "04",
+    title: "فويس اوفر",
+    category: "صوت",
+    description: "تسجيل صوتي احترافي يرفع جودة محتواك. أصوات واضحة ومؤثرة توصل رسالتك بطريقة احترافية تليق بمشروعك.",
+    features: [
+      "تسجيل احترافي",
+      "أصوات واضحة",
+      "جودة عالية",
+    ],
+  },
+  {
+    id: "05",
+    title: "تصاميم ثلاثية أبعاد",
+    category: "تصميم",
+    description: "تصاميم ثري دي احترافية تعطي مشروعك بعد جديد. تصاميم واقعية تساعدك تبرز منتجاتك بطريقة مبتكرة وتشوف انتباه العملاء.",
+    features: [
+      "تصاميم واقعية",
+      "بعد جديد",
+      "طريقة مبتكرة",
+    ],
+  },
+  {
+    id: "06",
+    title: "حملات ترويجية",
+    category: "تسويق",
+    description: "حملات متكاملة توصل رسالتك صح وتوصلها للناس. نخطط وننفذ اللي يهتمونك. أفكار جديدة، شغل مرتب، ونتائج تشوفها بعينك.",
+    features: [
+      "حملات متكاملة",
+      "أفكار جديدة",
+      "نتائج واضحة",
+    ],
+  },
+  {
+    id: "07",
+    title: "تصوير منتجات",
+    category: "تصوير",
+    description: "تصوير احترافي يطلع منتجاتك بأفضل صورة ممكنة. باستخدام أحدث التقنيات والمعايير، نخلي تفاصيلها واضحة وجمالها يبان من أول نظرة.",
+    features: [
+      "تصوير احترافي",
+      "تفاصيل واضحة",
+      "أحدث التقنيات",
+    ],
+  },
+  {
+    id: "08",
+    title: "موشن جرافيك",
+    category: "إنتاج",
+    description: "رسوم متحركة تخطف الانتباه وتوصل رسالتك بطريقة سهلة وواضحة. حركات سلسة وجذابة تخلي محتواك تفاعلي ويشوفه كل اللي يشوفه.",
+    features: [
+      "رسوم متحركة",
+      "حركات سلسة",
+      "محتوى تفاعلي",
+    ],
+  },
+  {
+    id: "09",
+    title: "تغطيات",
+    category: "إنتاج",
+    description: "تغطية كاملة لفعالياتك ومناسباتك بجودة عالية. ننقل كل لحظة مهمة بدقة ونوثق جو الحدث بطريقة مميزة وتشوفها كل اللي يشوفها.",
+    features: [
+      "تغطية كاملة",
+      "جودة عالية",
+      "توثيق دقيق",
+    ],
+  },
+];
+
 // GET - Fetch all services
 export async function GET() {
   try {
@@ -32,6 +135,29 @@ export async function GET() {
 
     const services = await db.collection("services").find({}).toArray();
     console.log(`[Services API] Found ${services.length} services`);
+
+    // If database is empty, seed with default services
+    if (services.length === 0) {
+      console.log("[Services API] Database is empty, seeding default services...");
+      const seedServices = defaultServices.map((service) => ({
+        ...service,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+      await db.collection("services").insertMany(seedServices);
+      const seededServices = await db.collection("services").find({}).toArray();
+      return NextResponse.json(
+        {
+          services: seededServices,
+          meta: {
+            count: seededServices.length,
+            environment: process.env.NODE_ENV,
+            seeded: true,
+          },
+        },
+        { status: 200 }
+      );
+    }
 
     return NextResponse.json(
       {
@@ -58,21 +184,19 @@ export async function GET() {
     const maskedUri = mongoUri.replace(/:([^@]+)@/, ":****@");
     console.error("[Services API] Using MongoDB URI:", maskedUri);
 
+    // Return default services if database is unavailable
+    // This allows the page to still display services even when MongoDB is down
+    console.warn("[Services API] Database unavailable, returning default services");
     return NextResponse.json(
       {
-        error: "Failed to fetch services",
-        details:
-          process.env.NODE_ENV === "development"
-            ? error instanceof Error
-              ? error.message
-              : "Unknown error"
-            : undefined,
+        services: defaultServices,
         meta: {
+          count: defaultServices.length,
           environment: process.env.NODE_ENV,
-          hasMongoUri: !!process.env.MONGODB_URI,
+          databaseUnavailable: true,
         },
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }

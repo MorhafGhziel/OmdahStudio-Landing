@@ -16,8 +16,9 @@ interface ServicesContent {
 
 const defaultServicesContent: ServicesContent = {
   badge: "خدماتنا",
-  title: "ما نقدمه لكم",
-  description: "حلول إبداعية متكاملة تواكب احتياجاتك وتتجاوز توقعاتك",
+  title: "عمدة، وش عنده؟",
+  description:
+    "عنده خدمات إنتاجية فنية رهيبة تليق بك، بعمالئك، بمجتمعك. نسوق لك بطريقة ترفع مشوارك!",
   ctaText: "تواصل معنا الآن",
 };
 

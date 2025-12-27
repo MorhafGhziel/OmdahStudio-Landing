@@ -23,10 +23,9 @@ export async function GET() {
     return NextResponse.json({ content: contentMap }, { status: 200 });
   } catch (error) {
     console.error("Error fetching content:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch content" },
-      { status: 500 }
-    );
+    // Return empty content instead of error to allow page to load with defaults
+    // This prevents the page from breaking when MongoDB is unavailable
+    return NextResponse.json({ content: {} }, { status: 200 });
   }
 }
 
