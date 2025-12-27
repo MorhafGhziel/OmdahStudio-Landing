@@ -121,7 +121,8 @@ export async function GET(request: NextRequest) {
       { error: "IDrive e2 storage not configured" },
       { status: 500 }
     );
-  } catch (error) {
+  } catch (err) {
+    console.error("Error proxying image:", err);
     return NextResponse.json(
       { error: "Failed to proxy image" },
       { status: 500 }
