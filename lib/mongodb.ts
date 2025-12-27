@@ -1,10 +1,8 @@
 import { MongoClient, Db } from "mongodb";
 import { attachDatabasePool } from "@vercel/functions";
 
-// Get the MongoDB URI from environment variable (set by Vercel or fallback)
-const uri =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://omdah_admin:omdah123@cluster0.4vpukx5.mongodb.net/omdah?retryWrites=true&w=majority";
+// Get the MongoDB URI from environment variable
+const uri = process.env.MONGODB_URI;
 const dbName = "omdah";
 
 // Connection options optimized for MongoDB Atlas free tier
@@ -54,6 +52,12 @@ export async function connectToDatabase() {
   }
 
   try {
+    if (!uri) {
+      throw new Error(
+        "MONGODB_URI environment variable is not set. Please set it in your .env.local file or environment variables."
+      );
+    }
+
     console.log("Creating new MongoDB connection...");
     
     client = new MongoClient(uri, options);
