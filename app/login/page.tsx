@@ -33,14 +33,31 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccessMessage("Verification code sent to your email");
-        setStep("code");
+        // Check if code was actually sent (not just a security message)
+        if (data.message && data.message.includes("If the email is registered")) {
+          // Email not in allowed list - show error
+          setError("This email is not authorized to access the admin panel. Please contact the administrator.");
+        } else if (data.error) {
+          // API returned an error even with 200 status
+          setError(data.error || "Failed to send code");
+          if (data.details) {
+            console.error("Error details:", data.details);
+          }
+        } else {
+          // Code was actually sent
+          setSuccessMessage("Verification code sent to your email");
+          setStep("code");
+        }
       } else {
+        // Non-200 status code
         setError(data.error || "Failed to send code");
+        if (data.details) {
+          console.error("Error details:", data.details);
+        }
       }
     } catch (error) {
       console.error("Send code error:", error);
-      setError("Failed to send verification code");
+      setError("Failed to send verification code. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }

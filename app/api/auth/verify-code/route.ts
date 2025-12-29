@@ -15,7 +15,29 @@ export async function POST(request: NextRequest) {
     const validatedData = verifyCodeSchema.parse(body);
     const { email, code } = validatedData;
 
-    const db = await getDatabase();
+    let db;
+    try {
+      db = await getDatabase();
+    } catch (dbError) {
+      console.error("Database connection error:", dbError);
+      let errorMessage = "Database connection unavailable. Please try again later.";
+      if (process.env.NODE_ENV === "development") {
+        if (dbError instanceof Error) {
+          if (dbError.message.includes("authentication failed")) {
+            errorMessage = "MongoDB authentication failed. Please check your MONGODB_URI in .env.local";
+          } else if (dbError.message.includes("ENOTFOUND") || dbError.message.includes("ECONNREFUSED")) {
+            errorMessage = "Cannot connect to MongoDB. Please check your connection string.";
+          }
+        }
+      }
+      return NextResponse.json(
+        { 
+          error: errorMessage,
+          details: process.env.NODE_ENV === "development" ? dbError instanceof Error ? dbError.message : String(dbError) : undefined
+        },
+        { status: 503 }
+      );
+    }
 
     // Find the code
     const authCode = await db.collection("authCodes").findOne({

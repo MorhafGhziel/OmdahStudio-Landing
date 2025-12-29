@@ -37,22 +37,33 @@ export async function POST(request: NextRequest) {
     } catch (dbError) {
       console.error("Database connection error:", dbError);
       // If MongoDB is unavailable, return a helpful error
+      let errorMessage = "Database connection unavailable. Please try again later.";
+      if (process.env.NODE_ENV === "development") {
+        if (dbError instanceof Error) {
+          if (dbError.message.includes("authentication failed")) {
+            errorMessage = "MongoDB authentication failed. Please check your MONGODB_URI in .env.local";
+          } else if (dbError.message.includes("ENOTFOUND") || dbError.message.includes("ECONNREFUSED")) {
+            errorMessage = "Cannot connect to MongoDB. Please check your connection string.";
+          }
+        }
+      }
       return NextResponse.json(
         { 
-          error: "Database connection unavailable. Please check MongoDB configuration.",
-          details: process.env.NODE_ENV === "development" 
-            ? "MongoDB authentication failed. Please update your MONGODB_URI in .env.local"
-            : undefined
+          error: errorMessage,
+          details: process.env.NODE_ENV === "development" ? dbError instanceof Error ? dbError.message : String(dbError) : undefined
         },
         { status: 503 }
       );
     }
 
     if (!allowedEmail) {
-      // Don't reveal that email is not allowed - return success anyway for security
+      // Return error to prevent confusion - user needs to know email is not authorized
       return NextResponse.json(
-        { message: "If the email is registered, a code has been sent." },
-        { status: 200 }
+        { 
+          error: "This email is not authorized to access the admin panel.",
+          message: "If the email is registered, a code has been sent." // Keep for security
+        },
+        { status: 403 }
       );
     }
 
@@ -130,9 +141,26 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error("Error sending email:", emailError);
       // Clean up the code if email fails
-      await db.collection("authCodes").deleteOne({ email: email.toLowerCase(), code });
+      try {
+        await db.collection("authCodes").deleteOne({ email: email.toLowerCase(), code });
+      } catch (cleanupError) {
+        console.error("Error cleaning up code:", cleanupError);
+      }
+      
+      let errorMessage = "Failed to send verification code. Please try again.";
+      if (emailError instanceof Error) {
+        if (emailError.message.includes("API key")) {
+          errorMessage = "Email service configuration error. Please contact administrator.";
+        } else if (emailError.message.includes("rate limit") || emailError.message.includes("rate_limit")) {
+          errorMessage = "Too many requests. Please wait a moment and try again.";
+        }
+      }
+      
       return NextResponse.json(
-        { error: "Failed to send verification code" },
+        { 
+          error: errorMessage,
+          details: process.env.NODE_ENV === "development" ? emailError instanceof Error ? emailError.message : String(emailError) : undefined
+        },
         { status: 500 }
       );
     }
