@@ -1,76 +1,58 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/mongodb";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
+import { requireAdmin } from "@/lib/auth";
+import { getDatabase } from "@/lib/mongodb";
 
-// Content sections schema
 const contentSchema = z.object({
-  section: z.string(),
+  section: z.string().min(1),
   data: z.record(z.string(), z.unknown()),
 });
 
-// GET - Fetch all content
 export async function GET() {
   try {
     const db = await getDatabase();
-    const content = await db.collection("content").find({}).toArray();
+    const sections = await db.collection("content").find({}).toArray();
 
-    // Convert array to object for easier access
-    const contentMap: Record<string, unknown> = {};
-    content.forEach((item) => {
-      contentMap[item.section] = item.data;
-    });
+    const content: Record<string, unknown> = {};
+    for (const section of sections) {
+      content[section.section] = section.data;
+    }
 
-    return NextResponse.json({ content: contentMap }, { status: 200 });
+    return NextResponse.json({ content });
   } catch (error) {
-    console.error("Error fetching content:", error);
-    // Return empty content instead of error to allow page to load with defaults
-    // This prevents the page from breaking when MongoDB is unavailable
-    return NextResponse.json({ content: {} }, { status: 200 });
+    console.error("[content] GET failed:", error);
+    // Empty means "use the built-in copy", which is a valid page.
+    return NextResponse.json({ content: {} });
   }
 }
 
-// PUT - Update content section
 export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const validatedData = contentSchema.parse(body);
+  const denied = requireAdmin(request);
+  if (denied) return denied;
 
+  try {
+    const { section, data } = contentSchema.parse(await request.json());
     const db = await getDatabase();
 
-    // Upsert content section
-    await db.collection("content").findOneAndUpdate(
-      { section: validatedData.section },
-      {
-        $set: {
-          section: validatedData.section,
-          data: validatedData.data,
-          updatedAt: new Date(),
-        },
-      },
-      { upsert: true }
-    );
+    await db
+      .collection("content")
+      .updateOne(
+        { section },
+        { $set: { section, data, updatedAt: new Date() } },
+        { upsert: true }
+      );
 
-    return NextResponse.json(
-      { message: "Content updated successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Content updated" });
   } catch (error) {
-    console.error("Error updating content:", error);
+    console.error("[content] PUT failed:", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        {
-          error: "Validation failed",
-          details: error.issues,
-        },
+        { error: "Validation failed", details: error.issues },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(
-      { error: "Failed to update content" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update content" }, { status: 500 });
   }
 }
-
