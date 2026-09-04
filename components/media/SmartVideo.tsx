@@ -114,7 +114,7 @@ export function SmartVideo({
       loop={mode === "ambient"}
       controls={mode === "player"}
       playsInline
-      preload={mode === "player" ? "metadata" : "none"}
+      preload="metadata"
       onError={() => setFailed(true)}
     >
       {sources.map((source) => (
