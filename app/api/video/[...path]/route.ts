@@ -34,7 +34,10 @@ export async function GET(
       // Determine content type based on file extension
       let contentType = "video/mp4";
       if (fileExtension === "mov") {
-        contentType = "video/quicktime";
+        // Chrome declines to decode video/quicktime. The bytes are ISO base
+        // media with H.264 inside, so the label is corrected rather than the
+        // file — matching lib/media and the remote proxy.
+        contentType = "video/mp4";
       } else if (fileExtension === "webm") {
         contentType = "video/webm";
       }
