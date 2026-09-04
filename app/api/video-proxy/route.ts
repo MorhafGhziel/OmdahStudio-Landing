@@ -90,7 +90,12 @@ export async function GET(request: NextRequest) {
         const stream = response.Body as Readable;
         const readableStream = streamToReadableStream(stream);
 
-        const contentType = response.ContentType || "video/mp4";
+        // Storage reports .mov as video/quicktime, which Chrome refuses to
+        // decode; the bytes are ISO base media format either way, so the
+        // label is rewritten rather than the file.
+        const reported = response.ContentType || "video/mp4";
+        const contentType =
+          reported === "video/quicktime" ? "video/mp4" : reported;
         const contentLength = response.ContentLength?.toString();
         const acceptRanges = response.AcceptRanges || "bytes";
         const contentRange = response.ContentRange;
