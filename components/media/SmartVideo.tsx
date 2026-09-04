@@ -33,7 +33,6 @@ export function SmartVideo({
 }: SmartVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const [visible, setVisible] = useState(false);
-  const [canPlay, setCanPlay] = useState(false);
   const [failed, setFailed] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -109,17 +108,13 @@ export function SmartVideo({
   const video = hasVideo && (
     <video
       ref={ref}
-      className={cn(
-        "absolute inset-0 size-full object-cover transition-opacity duration-700",
-        canPlay ? "opacity-100" : "opacity-0"
-      )}
+      className="absolute inset-0 size-full object-cover"
       poster={mode === "player" ? imageSrc(poster) ?? undefined : undefined}
       muted={mode === "ambient"}
       loop={mode === "ambient"}
       controls={mode === "player"}
       playsInline
-      preload="metadata"
-      onLoadedData={() => setCanPlay(true)}
+      preload={mode === "player" ? "metadata" : "none"}
       onError={() => setFailed(true)}
     >
       {sources.map((source) => (
