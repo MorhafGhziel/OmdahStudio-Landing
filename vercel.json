@@ -1,8 +1,5 @@
 {
   "functions": {
-    "app/api/contact/route.ts": {
-      "maxDuration": 10
-    },
     "app/api/services/route.ts": {
       "maxDuration": 15
     },
@@ -11,9 +8,6 @@
     },
     "app/api/video-proxy/route.ts": {
       "maxDuration": 60
-    },
-    "app/api/videos/upload/route.ts": {
-      "maxDuration": 300
     },
     "app/api/upload/route.ts": {
       "maxDuration": 60
