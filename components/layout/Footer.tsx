@@ -108,12 +108,12 @@ export function Footer() {
           <p dir="ltr" className="t-meta flex items-center gap-1.5 text-smoke">
             Built by
             <Link
-              href="https://morhaf.me"
+              href="https://inno.sa"
               target="_blank"
               rel="noopener noreferrer"
               className="link-rule font-medium text-chalk"
             >
-              Morhaf
+              Inno
             </Link>
           </p>
           <p className="t-label text-smoke">Riyadh · Saudi Arabia</p>
