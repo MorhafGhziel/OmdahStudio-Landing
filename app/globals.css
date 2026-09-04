@@ -1,146 +1,515 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+/* ============================================================
+   OMDAH — DESIGN SYSTEM
+   "A gallery for moving pictures", hung in a dark room.
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-ibm-plex-sans-arabic: var(--font-ibm-plex-sans-arabic);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+   The site is dark-only by design — there is no light theme and
+   no light surface anywhere. Contrast comes from three near-black
+   tiers plus hairlines; footage is the only bright thing on screen.
+   Flat by rule: no drop shadows.
+   ============================================================ */
+
+@theme {
+  /* ---- Surfaces.
+     The page is one continuous black sheet — there are no alternating
+     bands any more, so structure comes from hairline rules and the raised
+     tiers are reserved for things that genuinely sit on top: cards, media
+     plates, dialogs. Barely warm rather than blue-black, which keeps the
+     gallery character without lifting off true black. ---- */
+  --color-ink: #050505; /* page canvas */
+  --color-ink-2: #0e0d0d; /* subtle raise */
+  --color-ink-3: #161514; /* cards, media plates */
+  --color-hairline: #262523; /* borders and rules */
+
+  /* ---- Text ---- */
+  --color-chalk: #f4f1eb; /* headings, inverted buttons */
+  --color-ash: #b3ada3; /* body */
+  --color-smoke: #7b756c; /* muted, metadata */
+
+  /* ---- The single accent. Interaction only.
+     Lifted from the light theme's #b2482a, which went muddy against
+     near-black; -deep is kept for pressed and hover states. ---- */
+  --color-clay: #d9714f;
+  --color-clay-deep: #b2482a;
+
+  /* ---- Type ----
+     Preflight sets `html { font-family: var(--font-sans) }`, so naming the
+     Arabic stack here makes it the document default. The other two stacks
+     live in the :root block below — see the note there. */
+  --font-sans: var(--f-ar), "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  /* ---- Radius ---- */
+  --radius-xs: 3px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  /* ---- Motion ---- */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
 }
+
+/* ============================================================
+   FONT STACKS
+
+   Deliberately outside @theme. Tailwind v4 drops theme variables that no
+   utility class references, and these are consumed through var() inside the
+   .t-* classes rather than as font-* utilities — so inside @theme they were
+   being shaken out of the build. Every font-family then resolved to an empty
+   value and the entire site rendered in the browser's default sans, at the
+   wrong weights. Plain custom properties are never tree-shaken.
+   ============================================================ */
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --font-ar: var(--f-ar), "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-display: var(--f-display), "Instrument Serif", Georgia, serif;
+  --font-ui: var(--f-ui), "Inter", system-ui, sans-serif;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
+/* ============================================================
+   BASE
+   ============================================================ */
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--color-hairline);
   }
+
+  html {
+    /* The scroll container for every scroll-linked animation on the page.
+       Framer measures offsets against it and cannot do so reliably while it
+       is position: static. */
+    position: relative;
+    /* Tells the browser to render form controls, scrollbars and any
+       UA-painted surface dark, so nothing flashes white. */
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    background-color: var(--color-ink);
+  }
+
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-ink);
+    color: var(--color-ash);
+    font-family: var(--font-ar);
+    font-feature-settings: "kern", "liga";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-clay);
+    color: var(--color-ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--color-chalk);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /*
+   * Anything you can click says so. Browsers ship `cursor: default` on
+   * <button>, which reads as dead on a page where most controls are buttons
+   * rather than links — the nav, the service rows, the sound toggle.
+   */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  summary,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-clay);
+    outline-offset: 3px;
+    border-radius: 2px;
   }
 }
 
-.scrollable-works {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.1);
-  overflow-y: hidden !important;
+/* ============================================================
+   TYPOGRAPHY PRIMITIVES
+   Fluid scale. Arabic sets tighter than Latin at display sizes.
+   ============================================================ */
+
+@layer components {
+  .t-display {
+    font-family: var(--font-ar);
+    font-weight: 600;
+    font-size: clamp(2.75rem, 8.5vw, 8rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .t-h1 {
+    font-family: var(--font-ar);
+    font-weight: 600;
+    font-size: clamp(2.25rem, 6vw, 5rem);
+    line-height: 1.14;
+    letter-spacing: -0.018em;
+  }
+
+  .t-h2 {
+    font-family: var(--font-ar);
+    font-weight: 600;
+    font-size: clamp(1.75rem, 4vw, 3.25rem);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .t-h3 {
+    font-family: var(--font-ar);
+    font-weight: 500;
+    font-size: clamp(1.2rem, 2vw, 1.75rem);
+    line-height: 1.32;
+    letter-spacing: -0.01em;
+  }
+
+  .t-lead {
+    font-family: var(--font-ar);
+    font-weight: 400;
+    font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+    line-height: 1.78;
+  }
+
+  .t-body {
+    font-family: var(--font-ar);
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+
+  /* The serif is Latin-only: numerals, English titles, index marks. */
+  .t-serif {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  /* Gallery wall label. Latin only — see .t-label-ar for the Arabic pair. */
+  .t-label {
+    font-family: var(--font-ui);
+    font-weight: 500;
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /*
+   * The Arabic wall label.
+   *
+   * Arabic must never be letterspaced — tracking pulls apart glyphs that are
+   * meant to join, and the word stops reading as a word. It has no uppercase
+   * either, so the Latin label's two defining moves are both unavailable.
+   * Emphasis comes from weight and a slightly larger size instead.
+   */
+  .t-label-ar {
+    font-family: var(--font-ar);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .t-meta {
+    font-family: var(--font-ui);
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
 }
 
-.scrollable-works::-webkit-scrollbar {
-  height: 8px;
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
+@layer utilities {
+  /*
+   * Page shell — one source of truth for horizontal rhythm.
+   *
+   * The cap matters as much as the padding: without it the grid stretched to
+   * whatever the viewport was, so a 12-column layout on a wide screen spread
+   * its columns until nothing felt related to anything next to it. Full-bleed
+   * bands stay full-bleed by putting their background on the section and this
+   * on an inner wrapper.
+   */
+  .gutter {
+    width: 100%;
+    max-width: 78rem; /* 1248px */
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  /* A narrower measure for centred hero and section copy. */
+  .gutter-tight {
+    width: 100%;
+    max-width: 54rem; /* 864px */
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .measure {
+    max-width: 62ch;
+  }
+
+  /* Elevation is whispered: a ring of the tier below, never a shadow. */
+  .ring-hairline {
+    box-shadow: 0 0 0 1px var(--color-hairline);
+  }
+
+  /* A rule that draws itself in from the reading edge. */
+  .link-rule {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: 100% 100%;
+    transition: background-size 0.45s var(--ease-out-expo);
+  }
+
+  .link-rule:hover {
+    background-size: 100% 1px;
+  }
+
+  /* Masked edges for marquees, so logos dissolve rather than clip. */
+  .fade-x {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 7%,
+      #000 93%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 7%,
+      #000 93%,
+      transparent
+    );
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-.scrollable-works::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+/* ============================================================
+   AMBIENT
+
+   A flat black page is dead. This is the light in the room: a wide bloom
+   spilling from above the fold, and a soft spot that follows the pointer
+   the way a gallery light would. Both sit far below the content and are
+   deliberately near the threshold of visible — the point is that you feel
+   the page is lit, not that you notice a gradient.
+   ============================================================ */
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      42rem 42rem at var(--pointer-x, 50%) var(--pointer-y, 30%),
+      color-mix(in oklab, var(--color-clay) 6%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      75rem 34rem at 50% -8%,
+      color-mix(in oklab, var(--color-chalk) 4%, transparent),
+      transparent 70%
+    );
+  transition: background-position 0.2s linear;
 }
 
-.scrollable-works::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 4px;
+/* Without a pointer there is nothing to follow, so only the overhead
+   bloom remains. */
+@media (hover: none) {
+  .ambient {
+    background: radial-gradient(
+      75rem 34rem at 50% -8%,
+      color-mix(in oklab, var(--color-chalk) 4%, transparent),
+      transparent 70%
+    );
+  }
 }
 
-.scrollable-works::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.6);
+/* ============================================================
+   FILM GRAIN
+   One fixed layer over the whole page. `screen` rather than
+   `multiply`: against near-black, a multiplied layer has nothing
+   left to darken and disappears.
+   ============================================================ */
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+
+@keyframes marquee-forward {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-reverse {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes sheen-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ---- The lens mark ----
+   The iris breathes: blades rotate as they close, the way a real one does.
+   The mask polygon and the drawn blade edges share this animation verbatim,
+   which is what keeps the opening and its highlight in step. */
+
+@keyframes iris-breathe {
+  /* Dwells open and only stops down briefly, so the state you catch it in
+     at any given moment is the one worth looking at. Under reduced motion
+     the animation is cut to a single instant and the transform reverts —
+     which lands on wide open, the correct resting state. */
+  0%,
+  22% {
+    transform: rotate(0deg) scale(1);
+  }
+  58% {
+    transform: rotate(-15deg) scale(0.58);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes lens-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bloom-drift {
+  0%,
+  100% {
+    opacity: 0.16;
+    transform: translate(0, 0);
+  }
+  50% {
+    opacity: 0.26;
+    transform: translate(6px, -4px);
+  }
+}
+
+.anim-iris {
+  animation: iris-breathe 9s ease-in-out infinite;
+}
+
+.anim-lens-spin {
+  animation: lens-spin 90s linear infinite;
+}
+
+.anim-bloom {
+  animation: bloom-drift 11s ease-in-out infinite;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-forward var(--marquee-duration, 48s) linear infinite;
+}
+
+.marquee-track[data-reverse="true"] {
+  animation-name: marquee-reverse;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Skeleton sheen — the only "loading" motion in the system. */
+.sheen {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-ink-3);
+}
+
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-chalk) 8%, transparent),
+    transparent
+  );
+  animation: sheen-sweep 1.6s infinite;
+}
+
+/* ============================================================
+   ACCESSIBILITY — motion is a garnish, never the meal.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
