@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
+import { jwtSecret } from "@/lib/auth";
 import { getDatabase } from "@/lib/mongodb";
 
 const verifyCodeSchema = z.object({
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
     // Create JWT token
     const token = jwt.sign(
       { email: email.toLowerCase(), isAdmin: true },
-      process.env.JWT_SECRET || "your-secret-key",
+      jwtSecret(),
       { expiresIn: "24h" }
     );
 

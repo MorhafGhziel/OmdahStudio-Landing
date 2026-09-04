@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 import { z } from "zod";
-import jwt from "jsonwebtoken";
 import { getDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
@@ -10,19 +10,10 @@ const emailSchema = z.object({
 
 // GET - List all allowed emails (admin only)
 export async function GET(request: NextRequest) {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    try {
-      jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
-    } catch {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
     const db = await getDatabase();
     const allowedEmails = await db.collection("allowedEmails").find({}).toArray();
 
@@ -38,19 +29,10 @@ export async function GET(request: NextRequest) {
 
 // POST - Add allowed email (admin only)
 export async function POST(request: NextRequest) {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    try {
-      jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
-    } catch {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
     const body = await request.json();
     const validatedData = emailSchema.parse(body);
 
@@ -99,19 +81,10 @@ export async function POST(request: NextRequest) {
 
 // DELETE - Remove allowed email (admin only)
 export async function DELETE(request: NextRequest) {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    try {
-      jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
-    } catch {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
