@@ -2,104 +2,99 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
-  useState,
-  useEffect,
-  ReactNode,
+  useMemo,
+  useSyncExternalStore,
+  type ReactNode,
 } from "react";
 
-interface AdminContextType {
-  isAdmin: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
-  loginWithCode: (email: string, code: string) => Promise<boolean>;
-  logout: () => void;
-  loading: boolean;
+const TOKEN_KEY = "adminToken";
+
+/**
+ * The admin token lives in localStorage, which is an external store rather
+ * than React state — so it is read through useSyncExternalStore instead of
+ * being copied into state by an effect on mount. That removes the render
+ * cascade, and picks up sign-out in another tab for free.
+ */
+const listeners = new Set<() => void>();
+
+function emit() {
+  for (const listener of listeners) listener();
 }
 
-const AdminContext = createContext<AdminContextType | undefined>(undefined);
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
+function getSnapshot(): boolean {
+  try {
+    return Boolean(localStorage.getItem(TOKEN_KEY));
+  } catch {
+    return false;
+  }
+}
+
+/** The server has no session, so it always renders the signed-out view. */
+const getServerSnapshot = () => false;
+
+interface AdminContextValue {
+  isAdmin: boolean;
+  loginWithCode: (email: string, code: string) => Promise<boolean>;
+  logout: () => void;
+}
+
+const AdminContext = createContext<AdminContextValue | undefined>(undefined);
 
 export function AdminProvider({ children }: { children: ReactNode }) {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const isAdmin = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("adminToken");
-    if (token) {
-      setIsAdmin(true);
-    }
-    setLoading(false);
-  }, []);
-
-  const login = async (
-    username: string,
-    password: string
-  ): Promise<boolean> => {
+  const loginWithCode = useCallback(async (email: string, code: string) => {
     try {
-      const response = await fetch("/api/login", {
+      const res = await fetch("/api/auth/verify-code", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem("adminToken", data.token);
-        setIsAdmin(true);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Login error:", error);
-      return false;
-    }
-  };
-
-  const loginWithCode = async (
-    email: string,
-    code: string
-  ): Promise<boolean> => {
-    try {
-      const response = await fetch("/api/auth/verify-code", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code }),
       });
 
-      const data = await response.json();
+      if (!res.ok) return false;
 
-      if (response.ok) {
-        localStorage.setItem("adminToken", data.token);
-        setIsAdmin(true);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Login error:", error);
+      const { token } = await res.json();
+      localStorage.setItem(TOKEN_KEY, token);
+      emit();
+      return true;
+    } catch {
       return false;
     }
-  };
+  }, []);
 
-  const logout = () => {
-    localStorage.removeItem("adminToken");
-    setIsAdmin(false);
-  };
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    emit();
+  }, []);
+
+  const value = useMemo(
+    () => ({ isAdmin, loginWithCode, logout }),
+    [isAdmin, loginWithCode, logout]
+  );
 
   return (
-    <AdminContext.Provider value={{ isAdmin, login, loginWithCode, logout, loading }}>
-      {children}
-    </AdminContext.Provider>
+    <AdminContext.Provider value={value}>{children}</AdminContext.Provider>
   );
 }
 
 export function useAdmin() {
   const context = useContext(AdminContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAdmin must be used within an AdminProvider");
   }
   return context;
