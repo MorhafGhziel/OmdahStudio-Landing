@@ -37,8 +37,14 @@ export function videoSources(src?: string | null): VideoSource[] {
   const type = mimeFor(value);
 
   if (isRemote(value)) {
-    const proxied = `/api/video-proxy?url=${encodeURIComponent(value)}`;
-    return [{ src: proxied, type }];
+    // Records written before the reels were bundled still hold object-store
+    // URLs. Offer the shipped copy of the same filename first — it needs no
+    // credentials and comes off the CDN — and keep the proxy behind it for
+    // anything that was uploaded later and isn't in public/videos.
+    const file = value.split("/").pop();
+    const proxied = { src: `/api/video-proxy?url=${encodeURIComponent(value)}`, type };
+
+    return file ? [{ src: `/videos/${file}`, type }, proxied] : [proxied];
   }
 
   // Local /videos/* files are streamed through the range-aware route, with the

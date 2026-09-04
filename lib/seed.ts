@@ -6,7 +6,13 @@
  * empty page because Mongo had a bad minute.
  */
 
-const REEL = "https://s3.us-west-1.idrivee2.com/omdah/videos";
+/**
+ * The reels ship in public/videos and are served like any other static
+ * asset — no credentials, no proxy, no database. Pointing the seed at the
+ * object store meant a site without IDRIVE_* keys rendered every project
+ * without its footage, while the images beside them loaded fine.
+ */
+const REEL = "/videos";
 
 export const defaultServices = [
   {
