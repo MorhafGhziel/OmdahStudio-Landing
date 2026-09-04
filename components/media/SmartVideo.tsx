@@ -119,7 +119,7 @@ export function SmartVideo({
       controls={mode === "player"}
       playsInline
       preload="metadata"
-      onCanPlay={() => setCanPlay(true)}
+      onLoadedData={() => setCanPlay(true)}
       onError={() => setFailed(true)}
     >
       {sources.map((source) => (
