@@ -55,6 +55,12 @@ export function SmartVideo({
 
   // Track on-screen state. An ambient clip nobody can see should not be
   // decoding frames — that is most of the battery cost of a video-heavy page.
+  //
+  // hasVideo is a dependency because every src on this site arrives from a
+  // client fetch: on the first render there is no source yet, so no <video>
+  // is mounted and there is nothing to observe. Keyed only on mode, this
+  // effect ran once against a null ref and never again — which meant ambient
+  // clips never started on their own.
   useEffect(() => {
     const el = ref.current;
     if (!el || mode !== "ambient") return;
@@ -65,7 +71,7 @@ export function SmartVideo({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [mode]);
+  }, [mode, hasVideo]);
 
   useEffect(() => {
     const el = ref.current;
@@ -120,7 +126,20 @@ export function SmartVideo({
       controls={mode === "player"}
       playsInline
       preload="metadata"
-      onLoadedData={() => setPainted(true)}
+      onLoadedData={(e) => {
+        // A file whose video track the browser cannot decode still fires
+        // loadeddata and still plays its audio — it just paints nothing, so
+        // no error ever arrives and the frame sits black. Zero dimensions
+        // after metadata is the only reliable tell. Treat it as a failure so
+        // the still takes over.
+        const el = e.currentTarget;
+        if (el.videoWidth === 0 || el.videoHeight === 0) {
+          el.pause();
+          setFailed(true);
+          return;
+        }
+        setPainted(true);
+      }}
       onError={() => setFailed(true)}
     >
       {sources.map((source) => (
