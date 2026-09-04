@@ -40,5 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# large video files (hosted on Supabase Storage)
+/public/videos/
+
 # PRIVATE ADMIN CREATION - NEVER COMMIT TO GITHUB
 create-admin-private.js

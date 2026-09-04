@@ -1,34 +1,23 @@
+import { SUPABASE_VIDEO_BASE } from "./supabase";
+
 export type VideoSource = { src: string; type: string };
 
-function mimeFor(src: string): string {
-  const path = src.split("?")[0].toLowerCase();
-  if (path.endsWith(".webm")) return "video/webm";
-  return "video/mp4";
-}
-
+/**
+ * Every video lives in Supabase Storage. This module resolves local-looking
+ * paths (e.g. /videos/Foo.mov) into full Supabase public URLs. The .mov
+ * files were re-encoded to .mp4 during upload, so extensions are normalised.
+ */
 export function videoSources(src?: string | null): VideoSource[] {
   const value = src?.trim();
   if (!value) return [];
 
-  const type = mimeFor(value);
+  // Extract the filename, swap .mov → .mp4
+  const raw = value.split("/").pop() ?? value;
+  const file = raw.replace(/\.mov$/i, ".mp4");
 
-  if (value.startsWith("/videos/")) {
-    return [{ src: value, type }];
-  }
-
-  if (/^https?:\/\//i.test(value)) {
-    const file = value.split("/").pop();
-    if (file) {
-      return [{ src: `/videos/${file}`, type }];
-    }
-    return [{ src: value, type }];
-  }
-
-  return [{ src: value, type }];
+  return [{ src: `${SUPABASE_VIDEO_BASE}/${file}`, type: "video/mp4" }];
 }
 
 export function imageSrc(src?: string | null): string | null {
-  const value = src?.trim();
-  if (!value) return null;
-  return value;
+  return src?.trim() || null;
 }
