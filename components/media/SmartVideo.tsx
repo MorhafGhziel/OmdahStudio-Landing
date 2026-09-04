@@ -4,35 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import { imageSrc, videoSources } from "@/lib/media";
 import { cn } from "@/lib/utils";
 import { SmartImage } from "./SmartImage";
+import { Play, Pause } from "lucide-react";
 
 interface SmartVideoProps {
   src?: string | null;
-  /** Raw still URL. Resolved and optimized here — pass it unprocessed. */
   poster?: string | null;
   className?: string;
-  /**
-   * ambient — muted loop that plays only while on screen, no chrome. The
-   *   still sits behind and the footage fades over it once it can paint.
-   * player  — native controls, nothing starts without a click.
-   */
   mode?: "ambient" | "player";
-  /** ambient only: hold playback until the parent says so (hover, etc). */
   active?: boolean;
-  /** ambient only: unmute. Only ever flipped by a user gesture. */
   soundOn?: boolean;
-  /** player only: start playing on mount, with sound if the browser allows. */
   autoPlay?: boolean;
-  /** ambient only: this still is the largest paint on the page. */
   priority?: boolean;
   sizes?: string;
-  /** Alt text for the still. Empty where a caption already names the piece. */
   alt?: string;
 }
 
-/**
- * Every <video> on the site goes through here, so source resolution, the
- * play-while-visible rule, and the failure state are written once.
- */
 export function SmartVideo({
   src,
   poster,
@@ -47,20 +33,13 @@ export function SmartVideo({
 }: SmartVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const [visible, setVisible] = useState(false);
-  const [painted, setPainted] = useState(false);
+  const [canPlay, setCanPlay] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const sources = videoSources(src);
   const hasVideo = sources.length > 0 && !failed;
 
-  // Track on-screen state. An ambient clip nobody can see should not be
-  // decoding frames — that is most of the battery cost of a video-heavy page.
-  //
-  // hasVideo is a dependency because every src on this site arrives from a
-  // client fetch: on the first render there is no source yet, so no <video>
-  // is mounted and there is nothing to observe. Keyed only on mode, this
-  // effect ran once against a null ref and never again — which meant ambient
-  // clips never started on their own.
   useEffect(() => {
     const el = ref.current;
     if (!el || mode !== "ambient") return;
@@ -78,18 +57,12 @@ export function SmartVideo({
     if (!el || mode !== "ambient") return;
 
     if (visible && (active ?? true)) {
-      // Autoplay is only permitted while muted; a rejected promise here is an
-      // expected browser policy outcome, not an error worth surfacing.
       el.play().catch(() => {});
     } else if (!el.paused) {
       el.pause();
     }
   }, [visible, active, mode, src]);
 
-  // Player mode, opened from a click: that click is the user activation the
-  // autoplay-with-sound policy asks for, so try it with sound first. If the
-  // browser still refuses, fall back to muted — something playing beats a
-  // frozen poster.
   useEffect(() => {
     const el = ref.current;
     if (!el || mode !== "player" || !autoPlay) return;
@@ -100,46 +73,53 @@ export function SmartVideo({
     });
   }, [autoPlay, mode, src]);
 
-  // `muted` is a DOM property rather than an attribute, so React's declarative
-  // form is unreliable. Sound only ever comes on via a click, which keeps
-  // autoplay policy satisfied.
   useEffect(() => {
     const el = ref.current;
     if (!el || mode !== "ambient") return;
     el.muted = !soundOn;
   }, [soundOn, mode]);
 
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+
+    el.addEventListener("play", onPlay);
+    el.addEventListener("pause", onPause);
+
+    return () => {
+      el.removeEventListener("play", onPlay);
+      el.removeEventListener("pause", onPause);
+    };
+  }, []);
+
+  const togglePlay = () => {
+    const el = ref.current;
+    if (!el) return;
+
+    if (el.paused) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
+  };
+
   const video = hasVideo && (
     <video
       ref={ref}
       className={cn(
-        "absolute inset-0 size-full object-cover",
-        mode === "ambient" &&
-          "transition-opacity duration-700 " +
-            (painted ? "opacity-100" : "opacity-0")
+        "absolute inset-0 size-full object-cover transition-opacity duration-700",
+        canPlay ? "opacity-100" : "opacity-0"
       )}
-      // Player mode keeps the native poster so the controls have something to
-      // sit on; ambient mode uses the optimized image layer behind instead.
       poster={mode === "player" ? imageSrc(poster) ?? undefined : undefined}
       muted={mode === "ambient"}
       loop={mode === "ambient"}
       controls={mode === "player"}
       playsInline
       preload="metadata"
-      onLoadedData={(e) => {
-        // A file whose video track the browser cannot decode still fires
-        // loadeddata and still plays its audio — it just paints nothing, so
-        // no error ever arrives and the frame sits black. Zero dimensions
-        // after metadata is the only reliable tell. Treat it as a failure so
-        // the still takes over.
-        const el = e.currentTarget;
-        if (el.videoWidth === 0 || el.videoHeight === 0) {
-          el.pause();
-          setFailed(true);
-          return;
-        }
-        setPainted(true);
-      }}
+      onCanPlay={() => setCanPlay(true)}
       onError={() => setFailed(true)}
     >
       {sources.map((source) => (
@@ -150,10 +130,6 @@ export function SmartVideo({
 
   return (
     <div className={cn("relative overflow-hidden bg-ink-3", className)}>
-      {/* The still. In ambient mode it is the poster the footage fades over;
-          in player mode it appears only when there is nothing to play, so a
-          missing or unreachable file degrades to a picture rather than an
-          empty frame. */}
       {poster && (mode === "ambient" || !hasVideo) && (
         <SmartImage
           src={poster}
@@ -165,6 +141,25 @@ export function SmartVideo({
       )}
 
       {video}
+
+      {hasVideo && (
+        <button
+          onClick={togglePlay}
+          className={cn(
+            "absolute z-30 grid size-12 place-items-center rounded-full border border-chalk/25 backdrop-blur-sm transition-all",
+            mode === "ambient"
+              ? "start-5 bottom-5 bg-ink/40 text-chalk hover:bg-chalk hover:text-ink"
+              : "start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-ink/60 text-chalk hover:bg-chalk hover:text-ink"
+          )}
+          aria-label={isPlaying ? "pause" : "play"}
+        >
+          {isPlaying ? (
+            <Pause className="size-5" />
+          ) : (
+            <Play className="size-5 ms-0.5" />
+          )}
+        </button>
+      )}
 
       {!hasVideo && !poster && (
         <span className="t-label absolute inset-0 grid place-items-center text-smoke">

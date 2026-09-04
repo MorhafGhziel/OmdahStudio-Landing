@@ -118,7 +118,7 @@ export function Clients() {
                 row.length ? (
                   <Marquee key={i} duration={i === 0 ? 55 : 68} reverse={i === 1}>
                     {row.map((client) => (
-                      <LogoPlate key={client._id} client={client} />
+                      <LogoPlate key={client.name} client={client} />
                     ))}
                   </Marquee>
                 ) : null
