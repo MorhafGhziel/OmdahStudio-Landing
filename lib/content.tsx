@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -82,36 +81,7 @@ const ContentContext = createContext<ContentContextValue | undefined>(undefined)
 
 export function ContentProvider({ children }: { children: ReactNode }) {
   const [content, setContent] = useState(defaults);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetch("/api/content")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (cancelled || !data?.content) return;
-        const remote = data.content as Partial<
-          Record<SectionName, Record<string, string>>
-        >;
-        setContent({
-          hero: { ...defaultHero, ...remote.hero },
-          services: { ...defaultServicesContent, ...remote.services },
-          clients: { ...defaultClientsContent, ...remote.clients },
-          footer: { ...defaultFooter, ...remote.footer },
-        });
-      })
-      .catch(() => {
-        /* Defaults already on screen — a failed fetch changes nothing. */
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const loading = false;
 
   const save = useCallback(
     async <K extends SectionName>(section: K, data: SectionShape<K>) => {
