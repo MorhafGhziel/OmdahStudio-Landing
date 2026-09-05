@@ -3,15 +3,11 @@
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
-import { AdminButton } from "@/components/admin/Field";
-import { WorkForm } from "@/components/admin/WorkForm";
 import { ProjectModal } from "@/components/works/ProjectModal";
 import { SmartVideo } from "@/components/media/SmartVideo";
 import { Reveal } from "@/components/motion/Reveal";
 import { WordReveal } from "@/components/motion/WordReveal";
-import { useAdmin } from "@/lib/admin-context";
-import { authHeaders, useWorks } from "@/lib/data";
+import { useWorks } from "@/lib/data";
 import type { WorkType } from "@/lib/types";
 import { arabicIndex, cn } from "@/lib/utils";
 
@@ -19,16 +15,11 @@ function WorkTile({
   work,
   index,
   onOpen,
-  onEdit,
-  onDelete,
 }: {
   work: WorkType;
   index: number;
   onOpen: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
 }) {
-  const { isAdmin } = useAdmin();
   const [hover, setHover] = useState(false);
 
   // The "watch" disc trails the pointer inside the tile.
@@ -95,31 +86,6 @@ function WorkTile({
           >
             <span className="t-label-ar">شاهد</span>
           </motion.span>
-
-          {isAdmin && (
-            <div className="absolute end-4 top-4 z-30 flex gap-2">
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  onEdit();
-                }}
-                aria-label="تعديل"
-                className="grid size-9 place-items-center rounded-full bg-chalk text-ink"
-              >
-                <Pencil className="size-3.5" />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  onDelete();
-                }}
-                aria-label="حذف"
-                className="grid size-9 place-items-center rounded-full bg-clay text-ink"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Caption — a museum label under the piece. */}
@@ -142,20 +108,8 @@ function WorkTile({
 export function Works() {
   // `rest` excludes the featured piece, which is already playing as the hero
   // showreel further up the page.
-  const { rest, loading, refresh } = useWorks();
-  const { isAdmin } = useAdmin();
+  const { rest, loading } = useWorks();
   const [opened, setOpened] = useState<WorkType | null>(null);
-  const [editing, setEditing] = useState<WorkType | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-
-  const remove = async (work: WorkType) => {
-    if (!window.confirm(`حذف "${work.title}"؟`)) return;
-    await fetch(`/api/works?id=${work._id}`, {
-      method: "DELETE",
-      headers: authHeaders(),
-    });
-    refresh();
-  };
 
   return (
     <section id="works" className="border-t border-hairline">
@@ -180,21 +134,6 @@ export function Works() {
           </Reveal>
         </div>
 
-        {isAdmin && (
-          <div className="mt-10">
-            <AdminButton
-              variant="ghost"
-              className="border-hairline text-chalk hover:bg-ink-3"
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              + عمل جديد
-            </AdminButton>
-          </div>
-        )}
-
         <div className="mt-14 grid gap-x-8 gap-y-16 sm:mt-20 md:grid-cols-2">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => (
@@ -208,31 +147,16 @@ export function Works() {
               ))
             : rest.map((work, i) => (
                 <WorkTile
-                  key={String(work._id ?? work.id ?? i)}
+                  key={work.id}
                   work={work}
                   index={i}
                   onOpen={() => setOpened(work)}
-                  onEdit={() => {
-                    setEditing(work);
-                    setFormOpen(true);
-                  }}
-                  onDelete={() => remove(work)}
                 />
               ))}
         </div>
       </div>
 
       <ProjectModal project={opened} onClose={() => setOpened(null)} />
-
-      <WorkForm
-        open={formOpen}
-        work={editing}
-        onClose={() => setFormOpen(false)}
-        onSaved={() => {
-          setFormOpen(false);
-          refresh();
-        }}
-      />
     </section>
   );
 }
