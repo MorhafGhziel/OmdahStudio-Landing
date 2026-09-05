@@ -1,11 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic, Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
-import { Ambient } from "@/components/layout/Ambient";
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
-import { Preloader } from "@/components/layout/Preloader";
-import { ScrollProgress } from "@/components/layout/ScrollProgress";
 import { AdminProvider } from "@/lib/admin-context";
 import { ContentProvider } from "@/lib/content";
 
@@ -60,6 +55,13 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
+/**
+ * Document shell only.
+ *
+ * The gallery chrome — ambient light, header, footer — lives in the (site)
+ * group so the admin can sit on the same fonts and providers without
+ * inheriting a marketing header it has no use for.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -71,21 +73,8 @@ export default function RootLayout({
     >
       <body className="antialiased">
         <AdminProvider>
-          <ContentProvider>
-            {/* First in the DOM, so everything that follows paints over it. */}
-            <Ambient />
-            <Preloader />
-            <ScrollProgress />
-            <Header />
-            {/* Positioned: scroll-linked animations measure offsets up the
-                ancestor chain and warn on any static box along the way. */}
-            <main className="relative">{children}</main>
-            <Footer />
-          </ContentProvider>
+          <ContentProvider>{children}</ContentProvider>
         </AdminProvider>
-
-        {/* Paper grain, laid over everything and clickable through. */}
-        <div className="grain" aria-hidden />
       </body>
     </html>
   );
