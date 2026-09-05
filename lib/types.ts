@@ -1,39 +1,51 @@
-import type { ObjectId } from "mongodb";
+export interface WorkType {
+  id: string;
+  slug: string;
+  /** Derived from the slug by the API so callers never build it themselves. */
+  link: string;
+  title: string;
+  category: string;
+  client: string;
+  year: string;
+  description: string;
+  image: string | null;
+  /** Object name in the `videos` bucket, e.g. "jedeal.mp4". */
+  video: string | null;
+  video2: string | null;
+  featured: boolean;
+  services: string[];
+  position: number;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface ServiceType {
-  _id?: ObjectId | string;
   id: string;
   title: string;
   category: string;
   description: string;
   features: string[];
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface WorkType {
-  _id?: string;
-  id?: string;
-  title: string;
-  category: string;
-  client: string;
-  year: string;
-  description?: string;
-  image?: string;
-  video?: string;
-  video2?: string;
-  featured?: boolean;
-  services?: string[];
-  link?: string;
+  position: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ClientType {
-  _id?: string;
+  id: string;
   name: string;
   logo: string;
+  position: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
-/* ---- Editable copy, stored per-section in the `content` collection ---- */
+/** A row of `allowed_emails` — who may sign in to the admin. */
+export interface AllowedEmail {
+  email: string;
+  created_at?: string;
+}
+
+/* ---- Editable copy, one row per section in `site_content` ---- */
 
 export interface HeroContent {
   title: string;
