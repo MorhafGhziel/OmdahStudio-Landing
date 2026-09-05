@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Upload } from "lucide-react";
 import { authHeaders } from "@/lib/data";
 import type { WorkType } from "@/lib/types";
-import { uploadImage, uploadVideo } from "@/lib/upload";
 import { AdminButton, Field } from "./Field";
+import { MediaField } from "./MediaField";
 import { Modal } from "./Modal";
+import { Notice } from "./ui";
 
 interface WorkFormProps {
   open: boolean;
@@ -15,89 +15,9 @@ interface WorkFormProps {
   onSaved: () => void;
 }
 
-const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
-
-/** File picker that uploads on selection and reports the resulting URL. */
-function AssetInput({
-  label,
-  value,
-  accept,
-  maxBytes,
-  onUpload,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  accept: string;
-  maxBytes?: number;
-  onUpload: (file: File) => Promise<string>;
-  onChange: (url: string) => void;
-}) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-
-    if (maxBytes && file.size > maxBytes) {
-      setError(`الحد الأقصى ${Math.round(maxBytes / 1024 / 1024)} ميجابايت`);
-      return;
-    }
-
-    setBusy(true);
-    setError(null);
-    try {
-      onChange(await onUpload(file));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "تعذّر الرفع");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Field label={label} hint={error ?? undefined}>
-      {({ id, className }) => (
-        <div className="space-y-2">
-          <input
-            id={id}
-            className={className}
-            value={value}
-            dir="ltr"
-            placeholder="https://…"
-            onChange={(e) => onChange(e.target.value)}
-          />
-          <label className="t-label-ar inline-flex cursor-pointer items-center gap-2 rounded-full border border-hairline px-4 py-2 text-smoke transition-colors hover:border-chalk hover:text-chalk">
-            {busy ? (
-              "جارٍ الرفع…"
-            ) : value ? (
-              <>
-                <Check className="size-3 text-clay" /> استبدال الملف
-              </>
-            ) : (
-              <>
-                <Upload className="size-3" /> رفع ملف
-              </>
-            )}
-            <input
-              type="file"
-              accept={accept}
-              onChange={handle}
-              disabled={busy}
-              className="sr-only"
-            />
-          </label>
-        </div>
-      )}
-    </Field>
-  );
-}
-
 /** Mounted only while the dialog is open, so props seed the state directly. */
 function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
-  const [form, setForm] = useState<WorkType>(() => ({
+  const [form, setForm] = useState(() => ({
     title: work?.title ?? "",
     category: work?.category ?? "",
     client: work?.client ?? "",
@@ -107,6 +27,7 @@ function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
     video: work?.video ?? "",
     video2: work?.video2 ?? "",
     featured: work?.featured ?? false,
+    position: work?.position ?? 0,
   }));
   const [servicesText, setServicesText] = useState(() =>
     (work?.services ?? []).join("\n")
@@ -114,7 +35,8 @@ function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const set = <K extends keyof WorkType>(key: K, value: WorkType[K]) =>
+  type Form = typeof form;
+  const set = <K extends keyof Form>(key: K, value: Form[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
   const submit = async (e: React.FormEvent) => {
@@ -128,15 +50,15 @@ function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean),
-      image: form.image?.trim() || undefined,
-      video: form.video?.trim() || undefined,
-      video2: form.video2?.trim() || undefined,
+      image: form.image.trim() || null,
+      video: form.video.trim() || null,
+      video2: form.video2.trim() || null,
     };
 
     const res = await fetch("/api/works", {
       method: work ? "PUT" : "POST",
       headers: authHeaders(),
-      body: JSON.stringify(work ? { ...payload, _id: work._id } : payload),
+      body: JSON.stringify(work ? { ...payload, id: work.id } : payload),
     });
 
     setSaving(false);
@@ -199,6 +121,7 @@ function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
               id={id}
               className={className}
               value={form.year}
+              dir="ltr"
               onChange={(e) => set("year", e.target.value)}
               required
             />
@@ -206,7 +129,7 @@ function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
         </Field>
       </div>
 
-      <Field label="الوصف" required>
+      <Field label="الوصف">
         {({ id, className }) => (
           <textarea
             id={id}
@@ -214,7 +137,6 @@ function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
             rows={3}
             value={form.description}
             onChange={(e) => set("description", e.target.value)}
-            required
           />
         )}
       </Field>
@@ -231,45 +153,54 @@ function Body({ work, onClose, onSaved }: Omit<WorkFormProps, "open">) {
         )}
       </Field>
 
-      <AssetInput
+      <MediaField
         label="صورة الغلاف"
-        value={form.image ?? ""}
-        accept="image/*"
-        onUpload={uploadImage}
-        onChange={(url) => set("image", url)}
+        kind="image"
+        value={form.image}
+        onChange={(v) => set("image", v)}
       />
 
-      <AssetInput
+      <MediaField
         label="الفيديو"
-        value={form.video ?? ""}
-        accept="video/*"
-        maxBytes={MAX_VIDEO_BYTES}
-        onUpload={uploadVideo}
-        onChange={(url) => set("video", url)}
+        kind="video"
+        value={form.video}
+        onChange={(v) => set("video", v)}
+        hint="ارفع MP4 بترميز H.264 — المتصفحات لا تفك ترميز HEVC"
       />
 
-      <AssetInput
+      <MediaField
         label="فيديو إضافي"
-        value={form.video2 ?? ""}
-        accept="video/*"
-        maxBytes={MAX_VIDEO_BYTES}
-        onUpload={uploadVideo}
-        onChange={(url) => set("video2", url)}
+        kind="video"
+        value={form.video2}
+        onChange={(v) => set("video2", v)}
       />
 
-      <label className="flex cursor-pointer items-center gap-3">
-        <input
-          type="checkbox"
-          checked={Boolean(form.featured)}
-          onChange={(e) => set("featured", e.target.checked)}
-          className="size-4 accent-clay"
-        />
-        <span className="t-meta text-ash">
-          اعرضه كعمل رئيسي في الواجهة
-        </span>
-      </label>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field label="الترتيب" hint="الأصغر يظهر أولاً">
+          {({ id, className }) => (
+            <input
+              id={id}
+              className={className}
+              type="number"
+              dir="ltr"
+              value={form.position}
+              onChange={(e) => set("position", Number(e.target.value) || 0)}
+            />
+          )}
+        </Field>
 
-      {error && <p className="t-meta text-clay">{error}</p>}
+        <label className="flex cursor-pointer items-center gap-3 sm:mt-7">
+          <input
+            type="checkbox"
+            checked={form.featured}
+            onChange={(e) => set("featured", e.target.checked)}
+            className="size-4 accent-clay"
+          />
+          <span className="t-meta text-ash">اعرضه كعمل رئيسي في الواجهة</span>
+        </label>
+      </div>
+
+      {error && <Notice kind="error">{error}</Notice>}
 
       <div className="flex justify-end gap-3 pt-2">
         <AdminButton type="button" variant="ghost" onClick={onClose}>
