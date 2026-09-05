@@ -4,10 +4,12 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { authHeaders } from "./data";
 import type {
   ClientsContent,
   FooterContent,
@@ -58,7 +60,28 @@ const defaults = {
 };
 
 export type SectionName = keyof typeof defaults;
-type SectionShape<K extends SectionName> = (typeof defaults)[K];
+export type SectionShape<K extends SectionName> = (typeof defaults)[K];
+export type SiteContent = typeof defaults;
+
+/**
+ * Merge a stored section over its defaults.
+ *
+ * A saved row may predate a field that the design now reads, so spreading
+ * over the default keeps every key present and typed rather than handing a
+ * component `undefined` where it expects a string.
+ */
+function merge(stored: Record<string, unknown> | undefined): SiteContent {
+  const out = { ...defaults };
+
+  for (const name of Object.keys(defaults) as SectionName[]) {
+    const row = stored?.[name];
+    if (row && typeof row === "object") {
+      out[name] = { ...defaults[name], ...(row as object) } as never;
+    }
+  }
+
+  return out;
+}
 
 /* ============================================================
    Provider
@@ -69,7 +92,7 @@ type SectionShape<K extends SectionName> = (typeof defaults)[K];
    ============================================================ */
 
 interface ContentContextValue {
-  content: typeof defaults;
+  content: SiteContent;
   loading: boolean;
   save: <K extends SectionName>(
     section: K,
@@ -81,17 +104,35 @@ const ContentContext = createContext<ContentContextValue | undefined>(undefined)
 
 export function ContentProvider({ children }: { children: ReactNode }) {
   const [content, setContent] = useState(defaults);
-  const loading = false;
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/content")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (cancelled) return;
+        setContent(merge(json?.content));
+        setLoading(false);
+      })
+      .catch(() => {
+        // The defaults above are already on screen; a failed fetch just
+        // means the site keeps showing them.
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const save = useCallback(
     async <K extends SectionName>(section: K, data: SectionShape<K>) => {
       try {
         const res = await fetch("/api/content", {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("adminToken") ?? ""}`,
-          },
+          headers: authHeaders(),
           body: JSON.stringify({ section, data }),
         });
         if (!res.ok) return false;
@@ -114,26 +155,16 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function useContentContext() {
+export function useContent() {
   const ctx = useContext(ContentContext);
   if (!ctx) {
-    throw new Error("useSection must be used within a ContentProvider");
+    throw new Error("useContent must be used within a ContentProvider");
   }
   return ctx;
 }
 
-/**
- * Read one section's copy plus a writer scoped to a single field.
- * `EditableText` is the only consumer of `setField`.
- */
+/** Read one section's copy. Writes go through the admin, not the page. */
 export function useSection<K extends SectionName>(section: K) {
-  const { content, loading, save } = useContentContext();
-
-  const setField = useCallback(
-    (field: keyof SectionShape<K>, value: string) =>
-      save(section, { ...content[section], [field]: value }),
-    [content, save, section]
-  );
-
-  return { copy: content[section] as SectionShape<K>, loading, setField };
+  const { content, loading } = useContent();
+  return { copy: content[section] as SectionShape<K>, loading };
 }
