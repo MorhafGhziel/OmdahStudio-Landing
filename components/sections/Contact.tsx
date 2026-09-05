@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ContactScene } from "@/components/graphics/ContactScene";
+import { Reel } from "@/components/graphics/Reel";
 import { Reveal } from "@/components/motion/Reveal";
 import { WordReveal } from "@/components/motion/WordReveal";
 import { ButtonArrow, ButtonLink } from "@/components/ui/Button";
@@ -103,7 +103,7 @@ export function Contact() {
             aria-hidden
             className="col-span-12 lg:col-span-7 lg:col-start-6"
           >
-            <ContactScene />
+            <Reel />
           </Reveal>
         </div>
 

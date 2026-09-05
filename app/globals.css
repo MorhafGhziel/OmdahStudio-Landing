@@ -584,20 +584,81 @@
   }
 }
 
-/* The recording tally. */
-.rec-dot {
-  animation: rec-pulse 1.9s ease-in-out infinite;
+/* ---- The reel ----
+   The strip is rendered twice and travels exactly the width of one copy, so
+   the loop closes on itself and the seam never lands on screen. */
+.reel-run {
+  animation: reel-run var(--dur, 26s) linear infinite;
+  will-change: transform;
 }
 
-@keyframes rec-pulse {
+@keyframes reel-run {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--reel-shift, -50%), 0, 0);
+  }
+}
+
+/* Gate weave: real film never sits perfectly still in the gate. Under a
+   pixel of travel — enough to feel mechanical, not enough to read as a
+   glitch. */
+.reel-weave {
+  animation: reel-weave 1.3s ease-in-out infinite;
+}
+
+@keyframes reel-weave {
   0%,
   100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-clay) 55%, transparent);
+    transform: translateY(0);
   }
-  65% {
-    opacity: 0.5;
-    box-shadow: 0 0 0 7px transparent;
+  50% {
+    transform: translateY(0.9px);
+  }
+}
+
+/* A highlight travelling the length of the strip, as if it passed a lamp. */
+.reel-sweep {
+  animation: reel-sweep 7s ease-in-out infinite;
+}
+
+@keyframes reel-sweep {
+  0% {
+    transform: translateX(-45%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.55;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(145%);
+    opacity: 0;
+  }
+}
+
+/* The idea drawing itself in the first frame, then clearing. */
+.sketch-draw {
+  stroke-dasharray: 300;
+  animation: sketch-draw 6.5s ease-in-out infinite;
+}
+
+@keyframes sketch-draw {
+  0% {
+    stroke-dashoffset: 300;
+    opacity: 1;
+  }
+  45%,
+  80% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
   }
 }
 
