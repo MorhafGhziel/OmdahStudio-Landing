@@ -1,13 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans_Arabic, Instrument_Serif, Inter } from "next/font/google";
+import { Instrument_Serif, Readex_Pro } from "next/font/google";
 import "./globals.css";
 import { AdminProvider } from "@/lib/admin-context";
 import { ContentProvider } from "@/lib/content";
 
-/* Arabic carries the whole voice of the site, so it gets the full weight range. */
-const arabic = IBM_Plex_Sans_Arabic({
+/*
+ * Arabic carries the whole voice of the site.
+ *
+ * Readex Pro is variable across 160–700, so every weight the design asks for
+ * comes out of one file rather than five static cuts. Its Latin is drawn
+ * alongside the Arabic rather than bolted on, which is why it also serves as
+ * the UI face below — the wall labels and the headlines now share a skeleton
+ * instead of being two unrelated families sitting next to each other.
+ */
+const arabic = Readex_Pro({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "500", "600", "700"],
   variable: "--f-ar",
   display: "swap",
 });
@@ -17,13 +24,6 @@ const serif = Instrument_Serif({
   subsets: ["latin"],
   weight: "400",
   variable: "--f-display",
-  display: "swap",
-});
-
-/* Latin UI: wall labels and metadata only. */
-const ui = Inter({
-  subsets: ["latin"],
-  variable: "--f-ui",
   display: "swap",
 });
 
@@ -69,7 +69,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${arabic.variable} ${serif.variable} ${ui.variable}`}
+      className={`${arabic.variable} ${serif.variable}`}
     >
       <body className="antialiased">
         <AdminProvider>

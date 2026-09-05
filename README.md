@@ -45,21 +45,26 @@ fill on a dark page is invisible. Same for the wordmark, which uses
 rather than multiplied — see `components/sections/Clients.tsx` for the
 filter chain and why its order has to be written by hand.
 
-**Type** — three families, each with one job:
+**Type** — two families, each with one job:
 
 | Family | Role |
 | --- | --- |
-| IBM Plex Sans Arabic | every word of Arabic, 300–700 |
+| Readex Pro | every word of Arabic, and the Latin UI labels — one variable file, 160–700 |
 | Instrument Serif | Latin display: index numerals, project titles, the footer wordmark |
-| Inter | Latin wall labels and metadata only |
 
 Use the primitives — `.t-display`, `.t-h1`, `.t-h2`, `.t-h3`, `.t-lead`,
-`.t-body`, `.t-serif`, `.t-label`, `.t-label-ar`, `.t-meta` — rather than
-ad-hoc font sizes.
+`.t-body`, `.t-serif`, `.t-label`, `.t-label-ar`, `.t-meta`, `.t-meta-ar`,
+`.t-index-ar` — rather than ad-hoc font sizes.
 
-`.t-label` is Latin only. Arabic gets `.t-label-ar`: Arabic must never be
-letterspaced, and it has no uppercase, so the Latin label's two defining
-moves are both unavailable to it.
+**Every Latin-only primitive has an Arabic pair, and the pairing is not
+optional.** `.t-label` and `.t-meta` carry letterspacing, and Arabic must
+never be tracked — it pulls apart glyphs that are meant to join. Arabic has
+no uppercase either, so the Latin label's two defining moves are both
+unavailable to it. `.t-serif` is Instrument Serif, which has no Arabic-Indic
+digits at all: index marks written in ٠١، ٠٢ need `.t-index-ar`, or the
+browser silently substitutes Times New Roman and nothing in the code says so.
+Chrome's `CSS.getPlatformFontsForNode` is how you check which face actually
+drew a glyph — computed `font-family` only reports what was asked for.
 
 **Flat by rule.** No drop shadows anywhere. Depth comes from surface contrast
 and 1px hairlines (`.ring-hairline`).

@@ -37,7 +37,7 @@
      Preflight sets `html { font-family: var(--font-sans) }`, so naming the
      Arabic stack here makes it the document default. The other two stacks
      live in the :root block below — see the note there. */
-  --font-sans: var(--f-ar), "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-sans: var(--f-ar), "Readex Pro", system-ui, sans-serif;
 
   /* ---- Radius ---- */
   --radius-xs: 3px;
@@ -62,9 +62,11 @@
    ============================================================ */
 
 :root {
-  --font-ar: var(--f-ar), "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-ar: var(--f-ar), "Readex Pro", system-ui, sans-serif;
   --font-display: var(--f-display), "Instrument Serif", Georgia, serif;
-  --font-ui: var(--f-ui), "Inter", system-ui, sans-serif;
+  /* The UI face is the same family as the Arabic: Readex draws both scripts,
+     so a wall label and the headline above it share one skeleton. */
+  --font-ui: var(--f-ar), "Readex Pro", system-ui, sans-serif;
 }
 
 /* ============================================================
@@ -247,10 +249,10 @@
   /*
    * The Arabic pair for .t-meta.
    *
-   * Inter carries no Arabic at all, so Arabic set in .t-meta was silently
-   * substituted by the system — Arial on Windows — landing a completely
-   * different face in the middle of the page. Small Arabic gets the Plex
-   * stack, and no negative tracking, for the same reason .t-label-ar exists.
+   * The UI face now draws Arabic too, so this no longer exists to avoid a
+   * system substitution — it exists for the tracking. .t-meta carries -0.01em,
+   * and Arabic must never be tracked at all: it pulls apart glyphs that are
+   * meant to join. Same reason .t-label-ar exists.
    */
   .t-meta-ar {
     font-family: var(--font-ar);
