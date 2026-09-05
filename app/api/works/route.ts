@@ -1,151 +1,127 @@
-import { ObjectId } from "mongodb";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { getDatabase } from "@/lib/mongodb";
-import { defaultWorks } from "@/lib/seed";
+import { bad, fromPostgres, ok, slugify, workPath } from "@/lib/rest";
+import { supabaseAdmin } from "@/lib/supabase";
+import type { WorkType } from "@/lib/types";
 
 const workSchema = z.object({
   title: z.string().min(1, "العنوان مطلوب"),
   category: z.string().min(1, "الفئة مطلوبة"),
   client: z.string().min(1, "العميل مطلوب"),
   year: z.string().min(1, "السنة مطلوبة"),
-  description: z.string().min(1, "الوصف مطلوب"),
-  image: z.string().optional(),
-  video: z.string().optional(),
-  video2: z.string().optional(),
+  description: z.string().default(""),
+  image: z.string().nullish(),
+  video: z.string().nullish(),
+  video2: z.string().nullish(),
   featured: z.boolean().optional(),
-  services: z.array(z.string()).optional(),
+  services: z.array(z.string()).default([]),
+  position: z.number().int().optional(),
 });
 
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
+type Row = Omit<WorkType, "link">;
 
-/** Only one project can hold the front page at a time. */
-async function clearFeatured(
-  db: Awaited<ReturnType<typeof getDatabase>>,
-  except?: ObjectId
-) {
-  await db
-    .collection("works")
-    .updateMany(
-      except ? { featured: true, _id: { $ne: except } } : { featured: true },
-      { $set: { featured: false, updatedAt: new Date() } }
-    );
-}
+/** Rows carry a slug; callers get a ready-made path. */
+const withLink = (row: Row): WorkType => ({ ...row, link: workPath(row.slug) });
 
-function validationError(error: unknown) {
-  if (error instanceof z.ZodError) {
-    return NextResponse.json(
-      { error: "Validation failed", details: error.issues },
-      { status: 400 }
-    );
-  }
-  return null;
-}
+const blank = (value: unknown) =>
+  typeof value === "string" && value.trim() === "" ? null : value;
 
 export async function GET() {
-  try {
-    const db = await getDatabase();
-    const works = await db.collection("works").find({}).toArray();
+  const { data, error } = await supabaseAdmin()
+    .from("works")
+    .select("*")
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
 
-    if (works.length === 0) {
-      const now = new Date();
-      await db
-        .collection("works")
-        .insertMany(
-          defaultWorks.map((w) => ({ ...w, createdAt: now, updatedAt: now }))
-        );
-      const seeded = await db.collection("works").find({}).toArray();
-      return NextResponse.json({ works: seeded });
-    }
+  if (error) return fromPostgres("works.GET", error);
 
-    return NextResponse.json({ works });
-  } catch (error) {
-    console.error("[works] GET failed:", error);
-    return NextResponse.json({ works: defaultWorks });
-  }
+  return ok({ works: (data as Row[]).map(withLink) });
 }
 
 export async function POST(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
+  let payload: z.infer<typeof workSchema>;
   try {
-    const data = workSchema.parse(await request.json());
-    const db = await getDatabase();
-
-    if (data.featured) await clearFeatured(db);
-
-    const now = new Date();
-    const work = {
-      ...data,
-      id: String(now.getTime()),
-      link: `/works/${slugify(data.title)}`,
-      services: data.services ?? [],
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    const result = await db.collection("works").insertOne(work);
-    return NextResponse.json(
-      { success: true, work: { ...work, _id: result.insertedId } },
-      { status: 201 }
-    );
+    payload = workSchema.parse(await request.json());
   } catch (error) {
-    console.error("[works] POST failed:", error);
-    return (
-      validationError(error) ??
-      NextResponse.json({ error: "Failed to create work" }, { status: 500 })
-    );
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.issues },
+        { status: 400 }
+      );
+    }
+    return bad("Invalid body");
   }
+
+  const db = supabaseAdmin();
+
+  // Only one project can hold the front page. The database enforces this too,
+  // but clearing first turns a constraint violation into a normal update.
+  if (payload.featured) await db.from("works").update({ featured: false }).eq("featured", true);
+
+  const { data, error } = await db
+    .from("works")
+    .insert({
+      ...payload,
+      image: blank(payload.image),
+      video: blank(payload.video),
+      video2: blank(payload.video2),
+      slug: slugify(payload.title),
+    })
+    .select()
+    .single();
+
+  if (error) return fromPostgres("works.POST", error);
+
+  return ok({ work: withLink(data as Row) }, 201);
 }
 
 export async function PUT(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
+  const body = await request.json().catch(() => null);
+  const id = body?.id;
+  if (!id) return bad("Work id is required");
+
+  let payload: z.infer<typeof workSchema>;
   try {
-    const { _id, ...body } = await request.json();
-    if (!_id) {
-      return NextResponse.json({ error: "Work ID is required" }, { status: 400 });
-    }
-
-    const data = workSchema.parse(body);
-    const db = await getDatabase();
-    const objectId = new ObjectId(String(_id));
-
-    if (data.featured) await clearFeatured(db, objectId);
-
-    const work = await db.collection("works").findOneAndUpdate(
-      { _id: objectId },
-      {
-        $set: {
-          ...data,
-          link: `/works/${slugify(data.title)}`,
-          services: data.services ?? [],
-          updatedAt: new Date(),
-        },
-      },
-      { returnDocument: "after" }
-    );
-
-    if (!work) {
-      return NextResponse.json({ error: "Work not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true, work });
+    payload = workSchema.parse(body);
   } catch (error) {
-    console.error("[works] PUT failed:", error);
-    return (
-      validationError(error) ??
-      NextResponse.json({ error: "Failed to update work" }, { status: 500 })
-    );
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation failed", details: error.issues },
+        { status: 400 }
+      );
+    }
+    return bad("Invalid body");
   }
+
+  const db = supabaseAdmin();
+
+  if (payload.featured) {
+    await db.from("works").update({ featured: false }).eq("featured", true).neq("id", id);
+  }
+
+  const { data, error } = await db
+    .from("works")
+    .update({
+      ...payload,
+      image: blank(payload.image),
+      video: blank(payload.video),
+      video2: blank(payload.video2),
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return fromPostgres("works.PUT", error);
+  if (!data) return bad("Work not found", 404);
+
+  return ok({ work: withLink(data as Row) });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -153,23 +129,10 @@ export async function DELETE(request: NextRequest) {
   if (denied) return denied;
 
   const id = new URL(request.url).searchParams.get("id");
-  if (!id) {
-    return NextResponse.json({ error: "Work ID is required" }, { status: 400 });
-  }
+  if (!id) return bad("Work id is required");
 
-  try {
-    const db = await getDatabase();
-    const result = await db
-      .collection("works")
-      .deleteOne({ _id: new ObjectId(id) });
+  const { error } = await supabaseAdmin().from("works").delete().eq("id", id);
+  if (error) return fromPostgres("works.DELETE", error);
 
-    if (result.deletedCount === 0) {
-      return NextResponse.json({ error: "Work not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("[works] DELETE failed:", error);
-    return NextResponse.json({ error: "Failed to delete work" }, { status: 500 });
-  }
+  return ok({ success: true });
 }

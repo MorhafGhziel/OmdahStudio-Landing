@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { getDatabase } from "@/lib/mongodb";
+import { bad, fromPostgres, ok } from "@/lib/rest";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const contentSchema = z.object({
   section: z.string().min(1),
@@ -9,50 +10,42 @@ const contentSchema = z.object({
 });
 
 export async function GET() {
-  try {
-    const db = await getDatabase();
-    const sections = await db.collection("content").find({}).toArray();
+  const { data, error } = await supabaseAdmin()
+    .from("site_content")
+    .select("section, data");
 
-    const content: Record<string, unknown> = {};
-    for (const section of sections) {
-      content[section.section] = section.data;
-    }
+  if (error) return fromPostgres("content.GET", error);
 
-    return NextResponse.json({ content });
-  } catch (error) {
-    console.error("[content] GET failed:", error);
-    // Empty means "use the built-in copy", which is a valid page.
-    return NextResponse.json({ content: {} });
-  }
+  const content: Record<string, unknown> = {};
+  for (const row of data ?? []) content[row.section] = row.data;
+
+  return ok({ content });
 }
 
 export async function PUT(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
+  let payload: z.infer<typeof contentSchema>;
   try {
-    const { section, data } = contentSchema.parse(await request.json());
-    const db = await getDatabase();
-
-    await db
-      .collection("content")
-      .updateOne(
-        { section },
-        { $set: { section, data, updatedAt: new Date() } },
-        { upsert: true }
-      );
-
-    return NextResponse.json({ message: "Content updated" });
+    payload = contentSchema.parse(await request.json());
   } catch (error) {
-    console.error("[content] PUT failed:", error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation failed", details: error.issues },
         { status: 400 }
       );
     }
-
-    return NextResponse.json({ error: "Failed to update content" }, { status: 500 });
+    return bad("Invalid body");
   }
+
+  const { error } = await supabaseAdmin()
+    .from("site_content")
+    .upsert(
+      { section: payload.section, data: payload.data, updated_at: new Date().toISOString() },
+      { onConflict: "section" }
+    );
+
+  if (error) return fromPostgres("content.PUT", error);
+  return ok({ message: "Content updated" });
 }

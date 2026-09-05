@@ -1,114 +1,84 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { getDatabase } from "@/lib/mongodb";
-import { defaultServices } from "@/lib/seed";
+import { bad, fromPostgres, ok } from "@/lib/rest";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const serviceSchema = z.object({
   title: z.string().min(1, "العنوان مطلوب"),
   category: z.string().min(1, "الفئة مطلوبة"),
   description: z.string().min(10, "الوصف لا يقل عن ١٠ أحرف"),
   features: z.array(z.string()).min(1, "أضف ميزة واحدة على الأقل"),
+  position: z.number().int().optional(),
 });
 
-function validationError(error: unknown) {
-  if (error instanceof z.ZodError) {
-    return NextResponse.json(
-      { error: "Validation failed", details: error.issues },
-      { status: 400 }
-    );
+function parse(body: unknown) {
+  try {
+    return { data: serviceSchema.parse(body), response: null };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        data: null,
+        response: NextResponse.json(
+          { error: "Validation failed", details: error.issues },
+          { status: 400 }
+        ),
+      };
+    }
+    return { data: null, response: bad("Invalid body") };
   }
-  return null;
 }
 
 export async function GET() {
-  try {
-    const db = await getDatabase();
-    const services = await db.collection("services").find({}).toArray();
+  const { data, error } = await supabaseAdmin()
+    .from("services")
+    .select("*")
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
 
-    if (services.length === 0) {
-      const now = new Date();
-      await db
-        .collection("services")
-        .insertMany(
-          defaultServices.map((s) => ({ ...s, createdAt: now, updatedAt: now }))
-        );
-      const seeded = await db.collection("services").find({}).toArray();
-      return NextResponse.json({ services: seeded });
-    }
-
-    return NextResponse.json({ services });
-  } catch (error) {
-    console.error("[services] GET failed:", error);
-    // The page renders from defaults rather than showing an empty section.
-    return NextResponse.json({ services: defaultServices });
-  }
+  if (error) return fromPostgres("services.GET", error);
+  return ok({ services: data });
 }
 
 export async function POST(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
-  try {
-    const data = serviceSchema.parse(await request.json());
-    const db = await getDatabase();
+  const { data: payload, response } = parse(await request.json().catch(() => null));
+  if (!payload) return response;
 
-    const count = await db.collection("services").countDocuments();
-    const now = new Date();
-    const service = {
-      id: String(count + 1).padStart(2, "0"),
-      ...data,
-      createdAt: now,
-      updatedAt: now,
-    };
+  const { data, error } = await supabaseAdmin()
+    .from("services")
+    .insert(payload)
+    .select()
+    .single();
 
-    const result = await db.collection("services").insertOne(service);
-    return NextResponse.json(
-      { service: { ...service, _id: result.insertedId } },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("[services] POST failed:", error);
-    return (
-      validationError(error) ??
-      NextResponse.json({ error: "Failed to create service" }, { status: 500 })
-    );
-  }
+  if (error) return fromPostgres("services.POST", error);
+  return ok({ service: data }, 201);
 }
 
 export async function PUT(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
-  try {
-    const { id, ...body } = await request.json();
-    if (!id) {
-      return NextResponse.json({ error: "Service ID is required" }, { status: 400 });
-    }
+  const body = await request.json().catch(() => null);
+  const id = body?.id;
+  if (!id) return bad("Service id is required");
 
-    const data = serviceSchema.parse(body);
-    const db = await getDatabase();
+  const { data: payload, response } = parse(body);
+  if (!payload) return response;
 
-    const service = await db
-      .collection("services")
-      .findOneAndUpdate(
-        { id },
-        { $set: { ...data, updatedAt: new Date() } },
-        { returnDocument: "after" }
-      );
+  const { data, error } = await supabaseAdmin()
+    .from("services")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
 
-    if (!service) {
-      return NextResponse.json({ error: "Service not found" }, { status: 404 });
-    }
+  if (error) return fromPostgres("services.PUT", error);
+  if (!data) return bad("Service not found", 404);
 
-    return NextResponse.json({ service });
-  } catch (error) {
-    console.error("[services] PUT failed:", error);
-    return (
-      validationError(error) ??
-      NextResponse.json({ error: "Failed to update service" }, { status: 500 })
-    );
-  }
+  return ok({ service: data });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -116,21 +86,10 @@ export async function DELETE(request: NextRequest) {
   if (denied) return denied;
 
   const id = new URL(request.url).searchParams.get("id");
-  if (!id) {
-    return NextResponse.json({ error: "Service ID is required" }, { status: 400 });
-  }
+  if (!id) return bad("Service id is required");
 
-  try {
-    const db = await getDatabase();
-    const service = await db.collection("services").findOneAndDelete({ id });
+  const { error } = await supabaseAdmin().from("services").delete().eq("id", id);
+  if (error) return fromPostgres("services.DELETE", error);
 
-    if (!service) {
-      return NextResponse.json({ error: "Service not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ service });
-  } catch (error) {
-    console.error("[services] DELETE failed:", error);
-    return NextResponse.json({ error: "Failed to delete service" }, { status: 500 });
-  }
+  return ok({ success: true });
 }

@@ -1,69 +1,72 @@
-import { ObjectId } from "mongodb";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { getDatabase } from "@/lib/mongodb";
-import { defaultClients } from "@/lib/seed";
+import { bad, fromPostgres, ok } from "@/lib/rest";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const clientSchema = z.object({
-  name: z.string().min(1),
-  logo: z.string().min(1),
+  name: z.string().min(1, "الاسم مطلوب"),
+  logo: z.string().min(1, "الشعار مطلوب"),
+  position: z.number().int().optional(),
 });
 
 export async function GET() {
-  try {
-    const db = await getDatabase();
-    const clients = await db.collection("clients").find({}).toArray();
+  const { data, error } = await supabaseAdmin()
+    .from("clients")
+    .select("*")
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true });
 
-    if (clients.length === 0) {
-      const now = new Date();
-      await db
-        .collection("clients")
-        .insertMany(
-          defaultClients.map((c) => ({ ...c, createdAt: now, updatedAt: now }))
-        );
-      const seeded = await db.collection("clients").find({}).toArray();
-      return NextResponse.json({ clients: seeded });
-    }
-
-    return NextResponse.json({ clients });
-  } catch (error) {
-    console.error("[clients] GET failed:", error);
-    return NextResponse.json({
-      clients: defaultClients.map((client, i) => ({
-        _id: `default-${i}`,
-        ...client,
-      })),
-    });
-  }
+  if (error) return fromPostgres("clients.GET", error);
+  return ok({ clients: data });
 }
 
 export async function POST(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
+  let payload: z.infer<typeof clientSchema>;
   try {
-    const data = clientSchema.parse(await request.json());
-    const db = await getDatabase();
-    const now = new Date();
-
-    const result = await db
-      .collection("clients")
-      .insertOne({ ...data, createdAt: now, updatedAt: now });
-
-    return NextResponse.json({ id: result.insertedId }, { status: 201 });
+    payload = clientSchema.parse(await request.json());
   } catch (error) {
-    console.error("[clients] POST failed:", error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation failed", details: error.issues },
         { status: 400 }
       );
     }
-
-    return NextResponse.json({ error: "Failed to create client" }, { status: 500 });
+    return bad("Invalid body");
   }
+
+  const { data, error } = await supabaseAdmin()
+    .from("clients")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) return fromPostgres("clients.POST", error);
+  return ok({ client: data }, 201);
+}
+
+export async function PUT(request: NextRequest) {
+  const denied = requireAdmin(request);
+  if (denied) return denied;
+
+  const body = await request.json().catch(() => null);
+  const id = body?.id;
+  if (!id) return bad("Client id is required");
+
+  const { data, error } = await supabaseAdmin()
+    .from("clients")
+    .update({ name: body.name, logo: body.logo, position: body.position })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return fromPostgres("clients.PUT", error);
+  if (!data) return bad("Client not found", 404);
+
+  return ok({ client: data });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -71,27 +74,10 @@ export async function DELETE(request: NextRequest) {
   if (denied) return denied;
 
   const id = new URL(request.url).searchParams.get("id");
-  if (!id) {
-    return NextResponse.json({ error: "Client ID is required" }, { status: 400 });
-  }
+  if (!id) return bad("Client id is required");
 
-  if (!ObjectId.isValid(id)) {
-    return NextResponse.json({ error: "Invalid client ID" }, { status: 400 });
-  }
+  const { error } = await supabaseAdmin().from("clients").delete().eq("id", id);
+  if (error) return fromPostgres("clients.DELETE", error);
 
-  try {
-    const db = await getDatabase();
-    const result = await db
-      .collection("clients")
-      .deleteOne({ _id: new ObjectId(id) });
-
-    if (result.deletedCount === 0) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: "Client deleted" });
-  } catch (error) {
-    console.error("[clients] DELETE failed:", error);
-    return NextResponse.json({ error: "Failed to delete client" }, { status: 500 });
-  }
+  return ok({ success: true });
 }
