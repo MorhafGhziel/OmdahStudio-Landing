@@ -1,103 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { bad, ok } from "@/lib/rest";
+import { SUPABASE_URL, supabaseAdmin } from "@/lib/supabase";
 
-const getIDriveClient = () => {
-  if (
-    process.env.IDRIVE_ACCESS_KEY_ID &&
-    process.env.IDRIVE_SECRET_ACCESS_KEY
-  ) {
-    const endpoint = process.env.IDRIVE_ENDPOINT 
-      ? `https://${process.env.IDRIVE_ENDPOINT}`
-      : `https://s3.${process.env.IDRIVE_REGION || "us-west-1"}.idrivee2.com`;
-    
-    return new S3Client({
-      region: process.env.IDRIVE_REGION || "us-west-1",
-      endpoint: endpoint,
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: process.env.IDRIVE_ACCESS_KEY_ID,
-        secretAccessKey: process.env.IDRIVE_SECRET_ACCESS_KEY,
-      },
-    });
-  }
-  return null;
-};
+/**
+ * Hands the browser a short-lived signed URL so the file goes straight to
+ * Supabase Storage.
+ *
+ * Uploads deliberately do not pass through this function: a serverless request
+ * body is capped at a few megabytes, which a reel clears many times over.
+ */
+
+const BUCKETS = { image: "images", video: "videos" } as const;
+type Kind = keyof typeof BUCKETS;
+
+/**
+ * Storage keys are URL path segments, and most of these filenames arrive in
+ * Arabic. Anything outside the safe set is dropped, and a timestamp keeps a
+ * re-upload of the same name from overwriting the live file.
+ */
+function objectName(filename: string): string {
+  const dot = filename.lastIndexOf(".");
+  const ext = dot > 0 ? filename.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const stem = (dot > 0 ? filename.slice(0, dot) : filename)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+
+  const base = `${stem || "file"}-${Date.now().toString(36)}`;
+  return ext ? `${base}.${ext}` : base;
+}
 
 export async function POST(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
-  try {
-    const body = await request.json();
-    const { filename, contentType } = body;
+  const body = await request.json().catch(() => null);
+  const kind: Kind = body?.kind === "video" ? "video" : "image";
+  const filename = typeof body?.filename === "string" ? body.filename : "";
 
-    if (!filename) {
-      return NextResponse.json(
-        { error: "Filename is required" },
-        { status: 400 }
-      );
-    }
+  if (!filename) return bad("filename is required");
 
-    const idriveClient = getIDriveClient();
-    
-    if (!idriveClient) {
-      return NextResponse.json(
-        { 
-          error: "IDrive e2 storage not configured",
-          message: "Missing IDrive e2 credentials"
-        },
-        { status: 500 }
-      );
-    }
+  const bucket = BUCKETS[kind];
+  const path = objectName(filename);
 
-    if (!process.env.IDRIVE_BUCKET_NAME) {
-      return NextResponse.json(
-        { 
-          error: "IDrive e2 bucket not configured",
-          message: "IDRIVE_BUCKET_NAME environment variable is missing"
-        },
-        { status: 500 }
-      );
-    }
+  const { data, error } = await supabaseAdmin()
+    .storage.from(bucket)
+    .createSignedUploadUrl(path);
 
-    const timestamp = Date.now();
-    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const key = `images/${timestamp}_${sanitizedFilename}`;
-
-    const command = new PutObjectCommand({
-      Bucket: process.env.IDRIVE_BUCKET_NAME,
-      Key: key,
-      ContentType: contentType || "image/png",
-    });
-
-    const signedUrl = await getSignedUrl(idriveClient, command, {
-      expiresIn: 3600,
-    });
-
-    const publicUrl = `https://s3.${process.env.IDRIVE_REGION || "us-west-1"}.idrivee2.com/${process.env.IDRIVE_BUCKET_NAME}/${key}`;
-
-    return NextResponse.json(
-      { 
-        uploadUrl: signedUrl,
-        url: publicUrl,
-        key: key,
-        filename: key
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error generating upload URL:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    
-    return NextResponse.json(
-      { 
-        error: "Failed to generate upload URL",
-        message: errorMessage
-      },
-      { status: 500 }
-    );
+  if (error || !data) {
+    console.error("[upload-url]", error);
+    return bad("تعذّر بدء الرفع", 500);
   }
-}
 
+  return ok({
+    bucket,
+    path,
+    token: data.token,
+    // Videos are stored as bare object names so the bucket can move; images
+    // are referenced by full URL, matching the /images/* files already on disk.
+    value: kind === "video" ? path : `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`,
+  });
+}
