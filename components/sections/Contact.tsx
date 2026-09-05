@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Slate } from "@/components/graphics/Slate";
+import { ContactScene } from "@/components/graphics/ContactScene";
 import { Reveal } from "@/components/motion/Reveal";
 import { WordReveal } from "@/components/motion/WordReveal";
 import { ButtonArrow, ButtonLink } from "@/components/ui/Button";
@@ -88,7 +88,7 @@ export function Contact() {
             </Reveal>
 
             <Reveal delay={0.35}>
-              <p className="t-meta mt-6 text-smoke">
+              <p className="t-meta-ar mt-6 text-smoke">
                 نرد خلال ساعات العمل · الرياض
               </p>
             </Reveal>
@@ -101,9 +101,9 @@ export function Contact() {
             delay={0.15}
             duration={1.2}
             aria-hidden
-            className="col-span-12 mx-auto w-full max-w-sm lg:col-span-6 lg:col-start-7 lg:max-w-none"
+            className="col-span-12 lg:col-span-7 lg:col-start-6"
           >
-            <Slate />
+            <ContactScene />
           </Reveal>
         </div>
 
