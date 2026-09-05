@@ -15,6 +15,12 @@ export function jwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (secret) return secret;
 
+  // On a live site the fallback would mean anyone can mint an admin token
+  // against a string that is in this file. Refuse rather than serve that.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET must be set in production.");
+  }
+
   if (!warned) {
     warned = true;
     console.warn(

@@ -1,191 +1,93 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/lib/mongodb";
 import { Resend } from "resend";
+import { bad, fromPostgres, ok } from "@/lib/rest";
+import { supabaseAdmin } from "@/lib/supabase";
 
-// Initialize Resend only when API key is available
-const getResend = () => {
-  if (
-    process.env.RESEND_API_KEY &&
-    process.env.RESEND_API_KEY !== "dummy-key"
-  ) {
-    return new Resend(process.env.RESEND_API_KEY);
-  }
-  return null;
-};
+const schema = z.object({ email: z.string().email() });
 
-const sendCodeSchema = z.object({
-  email: z.string().email("Invalid email address"),
-});
+const CODE_TTL_MINUTES = 10;
 
-// POST - Send verification code to email
+/**
+ * Step one of sign-in: mint a six-digit code for an allowlisted address.
+ *
+ * The response never reveals whether an address is on the list — an endpoint
+ * that answers differently for known and unknown emails is an account
+ * enumeration oracle. Both paths return the same body.
+ */
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const validatedData = sendCodeSchema.parse(body);
-    const { email } = validatedData;
+  const parsed = schema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return bad("Invalid email");
 
-    // Check if email is in allowed list
-    let db;
-    let allowedEmail;
-    
-    try {
-      db = await getDatabase();
-      allowedEmail = await db.collection("allowedEmails").findOne({ 
-        email: email.toLowerCase() 
-      });
-    } catch (dbError) {
-      console.error("Database connection error:", dbError);
-      // If MongoDB is unavailable, return a helpful error
-      let errorMessage = "Database connection unavailable. Please try again later.";
-      if (process.env.NODE_ENV === "development") {
-        if (dbError instanceof Error) {
-          if (dbError.message.includes("authentication failed")) {
-            errorMessage = "MongoDB authentication failed. Please check your MONGODB_URI in .env.local";
-          } else if (dbError.message.includes("ENOTFOUND") || dbError.message.includes("ECONNREFUSED")) {
-            errorMessage = "Cannot connect to MongoDB. Please check your connection string.";
-          }
-        }
-      }
-      return NextResponse.json(
-        { 
-          error: errorMessage,
-          details: process.env.NODE_ENV === "development" ? dbError instanceof Error ? dbError.message : String(dbError) : undefined
-        },
-        { status: 503 }
+  const email = parsed.data.email.toLowerCase().trim();
+  const db = supabaseAdmin();
+
+  const { data: allowed, error: lookupError } = await db
+    .from("allowed_emails")
+    .select("email")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (lookupError) return fromPostgres("auth.send-code", lookupError);
+
+  const neutral = ok({ message: "If the email is registered, a code has been sent." });
+  if (!allowed) return neutral;
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = new Date(Date.now() + CODE_TTL_MINUTES * 60_000).toISOString();
+
+  const { error: writeError } = await db
+    .from("login_codes")
+    .upsert({ email, code, expires_at: expires }, { onConflict: "email" });
+
+  if (writeError) return fromPostgres("auth.send-code", writeError);
+
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    // In development the code goes to the terminal so the panel stays usable
+    // before a mail provider is wired up. It is never returned in the HTTP
+    // response — that would hand the code to anyone who can guess an address.
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[auth.send-code] RESEND_API_KEY not set. Dev login code for ${email}: ${code}`
       );
+      return neutral;
     }
 
-    if (!allowedEmail) {
-      // Return error to prevent confusion - user needs to know email is not authorized
-      return NextResponse.json(
-        { 
-          error: "This email is not authorized to access the admin panel.",
-          message: "If the email is registered, a code has been sent." // Keep for security
-        },
-        { status: 403 }
-      );
-    }
-
-    // Generate 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Clean up old codes for this email first
-    await db.collection("authCodes").deleteMany({
-      email: email.toLowerCase(),
-      $or: [
-        { used: true },
-        { expiresAt: { $lt: new Date() } },
-      ],
-    });
-
-    // Store code in database with expiration (10 minutes)
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
-
-    await db.collection("authCodes").insertOne({
-      email: email.toLowerCase(),
-      code,
-      expiresAt,
-      used: false,
-      createdAt: new Date(),
-    });
-
-    // Send email via Resend
-    const resend = getResend();
-    if (!resend) {
-      console.error("Resend API key not configured");
-      // Clean up the code if email service is not available
-      if (db) {
-        try {
-          await db.collection("authCodes").deleteOne({ email: email.toLowerCase(), code });
-        } catch (cleanupError) {
-          console.error("Error cleaning up code:", cleanupError);
-        }
-      }
-      return NextResponse.json(
-        { error: "Email service is not configured" },
-        { status: 503 }
-      );
-    }
-
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "info@omdah.sa";
-    
-    try {
-      await resend.emails.send({
-        from: fromEmail,
-        to: email,
-        subject: "Your Omdah Admin Login Code",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
-              🔐 Admin Login Verification Code
-            </h2>
-            <p style="color: #666; font-size: 16px; line-height: 1.6;">
-              Your verification code is:
-            </p>
-            <div style="background: #f5f5f5; border: 2px dashed #007bff; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
-              <h1 style="color: #007bff; font-size: 32px; letter-spacing: 8px; margin: 0; font-family: monospace;">
-                ${code}
-              </h1>
-            </div>
-            <p style="color: #666; font-size: 14px; line-height: 1.6;">
-              This code will expire in 10 minutes. If you didn't request this code, please ignore this email.
-            </p>
-            <p style="color: #999; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-              Omdah Admin System
-            </p>
-          </div>
-        `,
-      });
-    } catch (emailError) {
-      console.error("Error sending email:", emailError);
-      // Clean up the code if email fails
-      try {
-        await db.collection("authCodes").deleteOne({ email: email.toLowerCase(), code });
-      } catch (cleanupError) {
-        console.error("Error cleaning up code:", cleanupError);
-      }
-      
-      let errorMessage = "Failed to send verification code. Please try again.";
-      if (emailError instanceof Error) {
-        if (emailError.message.includes("API key")) {
-          errorMessage = "Email service configuration error. Please contact administrator.";
-        } else if (emailError.message.includes("rate limit") || emailError.message.includes("rate_limit")) {
-          errorMessage = "Too many requests. Please wait a moment and try again.";
-        }
-      }
-      
-      return NextResponse.json(
-        { 
-          error: errorMessage,
-          details: process.env.NODE_ENV === "development" ? emailError instanceof Error ? emailError.message : String(emailError) : undefined
-        },
-        { status: 500 }
-      );
-    }
-
+    // In production there is nowhere for the code to go. Say so plainly
+    // rather than pretending it was sent.
+    console.error("[auth.send-code] RESEND_API_KEY is not set; code not sent.");
     return NextResponse.json(
-      { message: "Verification code sent to your email" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Send code error:", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: "Validation failed",
-          details: error.issues,
-        },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Failed to send verification code" },
-      { status: 500 }
+      { error: "Email delivery is not configured." },
+      { status: 503 }
     );
   }
-}
 
+  try {
+    // Resend reports API-level failures — an unverified sending domain, a
+    // rejected recipient — in the returned `error`, not by throwing. Only
+    // network faults reach the catch below, so a send that the API refused
+    // used to be reported to the user as sent.
+    const { error } = await new Resend(key).emails.send({
+      // RESEND_FROM_EMAIL is the name already set in the deployment;
+      // RESEND_FROM stays accepted so a local .env with either works.
+      from:
+        process.env.RESEND_FROM_EMAIL ??
+        process.env.RESEND_FROM ??
+        "Omdah <onboarding@resend.dev>",
+      to: email,
+      subject: `${code} — رمز الدخول إلى لوحة عُمدة`,
+      text: `رمز الدخول: ${code}\n\nصالح لمدة ${CODE_TTL_MINUTES} دقائق.`,
+    });
+
+    if (error) {
+      console.error("[auth.send-code] Resend refused the message:", error);
+      return NextResponse.json({ error: "Could not send the code." }, { status: 502 });
+    }
+  } catch (error) {
+    console.error("[auth.send-code] send failed:", error);
+    return NextResponse.json({ error: "Could not send the code." }, { status: 502 });
+  }
+
+  return neutral;
+}

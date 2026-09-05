@@ -1,122 +1,66 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { type NextRequest } from "next/server";
 import { z } from "zod";
-import { getDatabase } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { requireAdmin } from "@/lib/auth";
+import { bad, fromPostgres, ok } from "@/lib/rest";
+import { supabaseAdmin } from "@/lib/supabase";
 
-const emailSchema = z.object({
-  email: z.string().email("Invalid email address"),
-});
+const schema = z.object({ email: z.string().email() });
 
-// GET - List all allowed emails (admin only)
+/** Who may sign in. Managed from the admin panel. */
 export async function GET(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
-  try {
-    const db = await getDatabase();
-    const allowedEmails = await db.collection("allowedEmails").find({}).toArray();
+  const { data, error } = await supabaseAdmin()
+    .from("allowed_emails")
+    .select("*")
+    .order("created_at", { ascending: true });
 
-    return NextResponse.json({ emails: allowedEmails }, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching allowed emails:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch allowed emails" },
-      { status: 500 }
-    );
-  }
+  if (error) return fromPostgres("auth.allowed-emails.GET", error);
+  return ok({ emails: data });
 }
 
-// POST - Add allowed email (admin only)
 export async function POST(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
-  try {
-    const body = await request.json();
-    const validatedData = emailSchema.parse(body);
+  const parsed = schema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return bad("Invalid email");
 
-    const db = await getDatabase();
-    
-    // Check if email already exists
-    const existing = await db.collection("allowedEmails").findOne({
-      email: validatedData.email.toLowerCase(),
-    });
+  const { data, error } = await supabaseAdmin()
+    .from("allowed_emails")
+    .insert({ email: parsed.data.email.toLowerCase().trim() })
+    .select()
+    .single();
 
-    if (existing) {
-      return NextResponse.json(
-        { error: "Email already in allowed list" },
-        { status: 400 }
-      );
-    }
-
-    const result = await db.collection("allowedEmails").insertOne({
-      email: validatedData.email.toLowerCase(),
-      createdAt: new Date(),
-    });
-
-    return NextResponse.json(
-      { message: "Email added successfully", id: result.insertedId },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("Error adding allowed email:", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: "Validation failed",
-          details: error.issues,
-        },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Failed to add email" },
-      { status: 500 }
-    );
-  }
+  if (error) return fromPostgres("auth.allowed-emails.POST", error);
+  return ok({ email: data }, 201);
 }
 
-// DELETE - Remove allowed email (admin only)
 export async function DELETE(request: NextRequest) {
   const denied = requireAdmin(request);
   if (denied) return denied;
 
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+  const email = new URL(request.url).searchParams.get("email");
+  if (!email) return bad("Email is required");
 
-    if (!id) {
-      return NextResponse.json(
-        { error: "Email ID is required" },
-        { status: 400 }
-      );
-    }
+  const db = supabaseAdmin();
 
-    const db = await getDatabase();
-    const result = await db.collection("allowedEmails").deleteOne({
-      _id: new ObjectId(id),
-    });
+  // Never let the last door close: an empty allowlist means nobody can ever
+  // sign in again, and there is no UI left to fix it from.
+  const { count } = await db
+    .from("allowed_emails")
+    .select("email", { count: "exact", head: true });
 
-    if (result.deletedCount === 0) {
-      return NextResponse.json(
-        { error: "Email not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: "Email removed successfully" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error removing allowed email:", error);
-    return NextResponse.json(
-      { error: "Failed to remove email" },
-      { status: 500 }
-    );
+  if ((count ?? 0) <= 1) {
+    return bad("Cannot remove the only address that can sign in.", 409);
   }
-}
 
+  const { error } = await db
+    .from("allowed_emails")
+    .delete()
+    .eq("email", email.toLowerCase());
+
+  if (error) return fromPostgres("auth.allowed-emails.DELETE", error);
+  return ok({ success: true });
+}

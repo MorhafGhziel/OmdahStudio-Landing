@@ -1,121 +1,40 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { type NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
+import { z } from "zod";
 import { jwtSecret } from "@/lib/auth";
-import { getDatabase } from "@/lib/mongodb";
+import { bad, ok } from "@/lib/rest";
+import { supabaseAdmin } from "@/lib/supabase";
 
-const verifyCodeSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  code: z.string().length(6, "Code must be 6 digits"),
+const schema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6),
 });
 
-// POST - Verify code and issue JWT token
+/** Step two: exchange a valid, unexpired code for a 24 hour admin token. */
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const validatedData = verifyCodeSchema.parse(body);
-    const { email, code } = validatedData;
+  const parsed = schema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) return bad("Invalid code");
 
-    let db;
-    try {
-      db = await getDatabase();
-    } catch (dbError) {
-      console.error("Database connection error:", dbError);
-      let errorMessage = "Database connection unavailable. Please try again later.";
-      if (process.env.NODE_ENV === "development") {
-        if (dbError instanceof Error) {
-          if (dbError.message.includes("authentication failed")) {
-            errorMessage = "MongoDB authentication failed. Please check your MONGODB_URI in .env.local";
-          } else if (dbError.message.includes("ENOTFOUND") || dbError.message.includes("ECONNREFUSED")) {
-            errorMessage = "Cannot connect to MongoDB. Please check your connection string.";
-          }
-        }
-      }
-      return NextResponse.json(
-        { 
-          error: errorMessage,
-          details: process.env.NODE_ENV === "development" ? dbError instanceof Error ? dbError.message : String(dbError) : undefined
-        },
-        { status: 503 }
-      );
-    }
+  const email = parsed.data.email.toLowerCase().trim();
+  const db = supabaseAdmin();
 
-    // Find the code
-    const authCode = await db.collection("authCodes").findOne({
-      email: email.toLowerCase(),
-      code,
-      used: false,
-    });
+  const { data: row } = await db
+    .from("login_codes")
+    .select("code, expires_at")
+    .eq("email", email)
+    .maybeSingle();
 
-    if (!authCode) {
-      return NextResponse.json(
-        { error: "Invalid or expired code" },
-        { status: 401 }
-      );
-    }
+  const valid =
+    row && row.code === parsed.data.code && new Date(row.expires_at) > new Date();
 
-    // Check if code is expired
-    if (new Date() > authCode.expiresAt) {
-      await db.collection("authCodes").updateOne(
-        { _id: authCode._id },
-        { $set: { used: true } }
-      );
-      return NextResponse.json(
-        { error: "Code has expired" },
-        { status: 401 }
-      );
-    }
+  if (!valid) return bad("Invalid or expired code", 401);
 
-    // Mark code as used
-    await db.collection("authCodes").updateOne(
-      { _id: authCode._id },
-      { $set: { used: true } }
-    );
+  // Single use: burn it before handing back a token.
+  await db.from("login_codes").delete().eq("email", email);
 
-    // Verify email is still in allowed list
-    const allowedEmail = await db.collection("allowedEmails").findOne({
-      email: email.toLowerCase(),
-    });
+  const token = jwt.sign({ email, isAdmin: true }, jwtSecret(), {
+    expiresIn: "24h",
+  });
 
-    if (!allowedEmail) {
-      return NextResponse.json(
-        { error: "Email not authorized" },
-        { status: 403 }
-      );
-    }
-
-    // Create JWT token
-    const token = jwt.sign(
-      { email: email.toLowerCase(), isAdmin: true },
-      jwtSecret(),
-      { expiresIn: "24h" }
-    );
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Login successful",
-        token,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Verify code error:", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: "Validation failed",
-          details: error.issues,
-        },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Failed to verify code" },
-      { status: 500 }
-    );
-  }
+  return ok({ success: true, token, email });
 }
-
