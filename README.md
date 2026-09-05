@@ -85,45 +85,60 @@ moves like a single object.
 
 ```
 app/
-  page.tsx              hero → manifesto → services → works → clients → contact
-  works/[slug]/         project page
-  login/                email + one-time-code admin sign-in
-  api/                  content, works, services, clients, uploads, media proxies
+  (site)/               the public site — shares one layout with the chrome
+    page.tsx            hero → manifesto → services → works → clients → contact
+    works/[slug]/       project page
+  admin/                the panel: overview, works, services, clients,
+                        content, access
+  login/                email + one-time-code sign-in
+  api/                  content, works, services, clients, signed upload URLs
 components/
   sections/             one file per band of the page
   layout/               header, footer, preloader, scroll progress
   motion/               Reveal, WordReveal, Marquee
   media/                SmartImage, SmartVideo
-  graphics/             Leader (the academy-leader mark)
-  admin/                EditableText, forms, modal, field kit
+  graphics/             Lens (the studio mark)
+  admin/                shell, ui kit, forms, media field, modal
 lib/
   content.tsx           editable copy: one fetch, shared by every section
   data.ts               works / services / clients, promise-cached per URL
-  media.ts              which URLs need which proxy
+  media.ts              resolves a stored value to a playable URL
+  upload.ts             browser → Supabase Storage, via a signed URL
+  supabase.ts           anon client, and the server-only service-role client
   auth.ts               admin guard for every write endpoint
-  seed.ts               defaults: seed an empty DB, and serve when it is down
+supabase/migrations/    the schema; run 0001_init.sql once
 ```
+
+**Data.** Postgres on Supabase. Reads are public through RLS; every write goes
+through a route handler holding the service role key, so the browser never
+carries a credential that can change anything. `allowed_emails` and
+`login_codes` have RLS on and no policies at all — unreachable with the anon
+key, readable only on the server.
 
 **Media.** Every `<video>` goes through `SmartVideo` and every image through
 `SmartImage`, so source resolution, the play-while-visible rule, and the
-degrade-to-a-still failure path are each written once. Remote files travel
-through `/api/video-proxy` and `/api/image-proxy`; local `/videos/*` use the
-range-aware `/api/video/[...path]` route.
+degrade-to-a-still failure path are each written once. Files live in the
+public `videos` and `images` buckets. Uploads never pass through a route
+handler — the server mints a signed URL and the browser sends the bytes
+straight to storage, because a 45MB reel clears the serverless body cap many
+times over.
 
-**Editing.** Signing in at `/login` turns copy into `EditableText` — hover
-shows a pencil, click edits in place. Works, services and clients get full
-CRUD through the same modal kit. Signed-out visitors get clean markup with no
-editing chrome in the DOM.
+**Editing.** Everything is edited at `/admin`, gated on the sign-in token.
+The public pages carry no editing chrome in the DOM at all, signed in or not.
 
 ## Environment
 
 | Variable | Purpose |
 | --- | --- |
-| `MONGODB_URI` | content, works, services, clients, allowed admin emails |
-| `JWT_SECRET` | **set this.** Without it, tokens are signed with a public default and anyone can forge an admin session |
-| `RESEND_API_KEY` | sends the one-time sign-in code |
-| `IDRIVE_ACCESS_KEY_ID` / `IDRIVE_SECRET_ACCESS_KEY` | object storage for uploaded video and images |
-| `IDRIVE_ENDPOINT` / `IDRIVE_REGION` / `IDRIVE_BUCKET_NAME` | optional; default to `s3.us-west-1.idrivee2.com`, `us-west-1`, `omdah` |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the project; also where media URLs are built from |
+| `SUPABASE_SERVICE_ROLE_KEY` | server-only. Every admin write, and every read of the sign-in tables |
+| `JWT_SECRET` | **set this.** Production refuses to start an admin session without it; development falls back to a public default and says so |
+| `RESEND_API_KEY` | sends the one-time sign-in code. Unset in development, the code is printed to the server console instead |
+| `RESEND_FROM_EMAIL` | optional sender address (`RESEND_FROM` also accepted) |
 
-Without Mongo the site still renders from `lib/seed.ts`. Without the iDrive
-keys the media proxies return 500 and videos fall back to their stills.
+## First run
+
+Paste `supabase/migrations/0001_init.sql` into the Supabase SQL editor and run
+it once. It creates the tables, the policies, and seeds the current content
+plus the first address that may sign in. Re-running it is safe — every
+statement is guarded and the seed only fills empty tables.
