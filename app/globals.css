@@ -243,6 +243,38 @@
     line-height: 1.5;
     letter-spacing: -0.01em;
   }
+
+  /*
+   * The Arabic pair for .t-meta.
+   *
+   * Inter carries no Arabic at all, so Arabic set in .t-meta was silently
+   * substituted by the system — Arial on Windows — landing a completely
+   * different face in the middle of the page. Small Arabic gets the Plex
+   * stack, and no negative tracking, for the same reason .t-label-ar exists.
+   */
+  .t-meta-ar {
+    font-family: var(--font-ar);
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    letter-spacing: 0;
+  }
+
+  /*
+   * Index marks written in Arabic-Indic digits (٠١، ٠٢).
+   *
+   * These used .t-serif for its size and colour, but Instrument Serif has no
+   * Arabic-Indic coverage either — every numeral was being drawn in Times
+   * New Roman, beside a display serif that was chosen with some care.
+   * Tabular figures so a column of them stays aligned.
+   */
+  .t-index-ar {
+    font-family: var(--font-ar);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* ============================================================
@@ -494,6 +526,79 @@
     transparent
   );
   animation: sheen-sweep 1.6s infinite;
+}
+
+/* ============================================================
+   ILLUSTRATED SCENES
+
+   A scene is a set of pieces floating around an anchor. Every piece needs
+   two transforms at once — pointer parallax and an idle float — and a single
+   element cannot run both on `transform`, so a piece is always two nested
+   layers: the outer carries parallax scaled by its own depth, the inner
+   carries the float.
+
+   The loops are CSS rather than JS: they run off the main thread, and the
+   reduced-motion block below already stops every one of them.
+   ============================================================ */
+
+.scene-par {
+  transform: translate3d(
+    calc(var(--px, 0px) * var(--d, 1)),
+    calc(var(--py, 0px) * var(--d, 1)),
+    0
+  );
+  transition: transform 0.7s var(--ease-out-expo);
+  will-change: transform;
+}
+
+.scene-float {
+  animation: scene-float var(--dur, 7s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform;
+}
+
+@keyframes scene-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r0, 0deg));
+  }
+  50% {
+    transform: translateY(var(--amp, -12px)) rotate(var(--r1, 0deg));
+  }
+}
+
+/* An audio level meter. Alternating, so each bar reverses at its own pace
+   and the row never falls into a visible lockstep. */
+.meter-bar {
+  transform-origin: bottom;
+  animation: meter-bounce var(--dur, 1.1s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes meter-bounce {
+  from {
+    transform: scaleY(0.22);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* The recording tally. */
+.rec-dot {
+  animation: rec-pulse 1.9s ease-in-out infinite;
+}
+
+@keyframes rec-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-clay) 55%, transparent);
+  }
+  65% {
+    opacity: 0.5;
+    box-shadow: 0 0 0 7px transparent;
+  }
 }
 
 /* ============================================================

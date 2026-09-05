@@ -73,7 +73,7 @@ function WorkTile({
           />
 
           {/* Index mark */}
-          <span className="t-serif absolute start-5 top-4 z-10 text-xl text-chalk/70 mix-blend-difference">
+          <span className="t-index-ar absolute start-5 top-4 z-10 text-xl text-chalk/70 mix-blend-difference">
             {arabicIndex(index + 1)}
           </span>
 

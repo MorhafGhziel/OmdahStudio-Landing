@@ -69,7 +69,7 @@ export function Services() {
                       >
                         {/* Position in the list, not the row's identity — an
                             id is a uuid here and would print as one. */}
-                        <span className="t-serif w-10 shrink-0 text-xl text-smoke sm:text-2xl">
+                        <span className="t-index-ar w-10 shrink-0 text-xl text-smoke sm:text-2xl">
                           {arabicIndex(i + 1)}
                         </span>
 
