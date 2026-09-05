@@ -28,7 +28,7 @@ const CYCLE = 4;
 const PERFS_PER_FRAME = 4;
 
 const CANVAS_W = 520;
-const CANVAS_H = 430;
+const CANVAS_H = 340;
 
 /* ---------------------------------------------------------------- frames */
 
@@ -168,8 +168,8 @@ export function Reel() {
            consistent direction regardless of the page being RTL. */
         dir="ltr"
         className={
-          "relative shrink-0 origin-top scale-[0.66] mb-[-146px] " +
-          "sm:scale-[0.8] sm:mb-[-86px] lg:scale-100 lg:mb-0"
+          "relative shrink-0 origin-top scale-[0.66] mb-[-116px] " +
+          "sm:scale-[0.8] sm:mb-[-68px] lg:scale-100 lg:mb-0"
         }
         style={{ width: CANVAS_W, height: CANVAS_H }}
       >
@@ -186,7 +186,7 @@ export function Reel() {
         />
 
         {/* ---- the strip ---- */}
-        <Piece x={-90} y={126} depth={0.4} dur={11} amp={-8} rot={[-13, -12]} z={2}>
+        <Piece x={-90} y={86} depth={0.4} dur={11} amp={-8} rot={[-13, -12]} z={2}>
           <div
             className="relative"
             style={{ width: 700 }}

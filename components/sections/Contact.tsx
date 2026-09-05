@@ -62,39 +62,50 @@ export function Contact() {
           <span className="t-serif ms-auto text-2xl text-chalk/40">05</span>
         </Reveal>
 
-        <div className="grid grid-cols-12 items-center gap-y-14 pt-14 sm:pt-16">
-          {/* ---- The ask ---- */}
-          <div className="col-span-12 lg:col-span-5">
-            <h2 className="t-display">
+        <div className="grid grid-cols-12 items-center gap-y-12 pt-12 sm:pt-14">
+          {/*
+           * The ask.
+           *
+           * Centred until the reel can sit beside it. Left aligned to the
+           * reading edge, a single narrow column of copy hugged the right of
+           * a full-width band and left the other half empty — the same void
+           * the desktop layout was built to close, just moved to tablet.
+           */}
+          <div className="col-span-12 text-center lg:col-span-5 lg:text-start">
+            {/* .t-h1, not .t-display: the hero owns the display size, and two
+                of them on one page is two things shouting. */}
+            <h2 className="t-h1">
               <WordReveal text="عندك فكرة؟" />
             </h2>
-            <p className="t-h2 mt-3 font-normal text-chalk/45 sm:mt-4">
+            <p className="t-h3 mt-3 font-normal text-ash">
               <WordReveal text="خلنا نحولها لواقع" delay={0.15} />
             </p>
 
-            <Reveal delay={0.25} className="mt-10 sm:mt-12">
+            <Reveal delay={0.25} className="mt-8 sm:mt-10">
+              {/* No geometry overrides. This is the same button as everywhere
+                  else on the site; the padding and type size it had bolted on
+                  made it read as a different component. */}
               <ButtonLink
                 href={copy.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="outline"
                 size="lg"
-                className="gap-4 px-9 py-5 text-lg sm:text-xl"
               >
-                <WhatsAppMark className="size-6" />
+                <WhatsAppMark className="me-3 size-4" />
                 راسلنا الحين
-                <ButtonArrow className="size-5" />
+                <ButtonArrow />
               </ButtonLink>
             </Reveal>
 
             <Reveal delay={0.35}>
-              <p className="t-meta-ar mt-6 text-smoke">
+              <p className="t-meta-ar mt-5 text-smoke">
                 نرد خلال ساعات العمل · الرياض
               </p>
             </Reveal>
           </div>
 
-          {/* ---- The slate ----
+          {/* ---- The reel ----
               Hidden from assistive tech: it says nothing the copy beside it
               has not already said, and its own label would only interrupt. */}
           <Reveal
