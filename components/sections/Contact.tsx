@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Slate } from "@/components/graphics/Slate";
 import { Reveal } from "@/components/motion/Reveal";
 import { WordReveal } from "@/components/motion/WordReveal";
 import { ButtonArrow, ButtonLink } from "@/components/ui/Button";
@@ -27,6 +28,14 @@ function handleFrom(url: string): string {
   return slug ? `@${slug}` : url;
 }
 
+/**
+ * The way in.
+ *
+ * This used to be a centred headline with a button under it, which left two
+ * thirds of a full-height band empty and pushed everything against one edge.
+ * It is now a pair: the ask on the reading side, the slate on the other, so
+ * the section carries weight across its whole width instead of a void.
+ */
 export function Contact() {
   const { copy } = useSection("footer");
 
@@ -46,42 +55,60 @@ export function Contact() {
 
   return (
     <section id="contact" className="border-t border-hairline">
-      <div className="gutter py-20 sm:py-24 lg:py-32">
+      <div className="gutter py-20 sm:py-24 lg:py-28">
         <Reveal className="flex items-center gap-6 border-b border-hairline pb-5">
           <span className="t-label-ar shrink-0 text-clay">تواصل معنا</span>
           <span className="t-label text-chalk/40">Start a Project</span>
           <span className="t-serif ms-auto text-2xl text-chalk/40">05</span>
         </Reveal>
 
-        <div className="pt-16 sm:pt-24">
-          <h2 className="t-display">
-            <WordReveal text="عندك فكرة؟" />
-          </h2>
-          <p className="t-h2 mt-3 font-normal text-chalk/45 sm:mt-5">
-            <WordReveal text="خلنا نحولها لواقع" delay={0.15} />
-          </p>
+        <div className="grid grid-cols-12 items-center gap-y-14 pt-14 sm:pt-16">
+          {/* ---- The ask ---- */}
+          <div className="col-span-12 lg:col-span-5">
+            <h2 className="t-display">
+              <WordReveal text="عندك فكرة؟" />
+            </h2>
+            <p className="t-h2 mt-3 font-normal text-chalk/45 sm:mt-4">
+              <WordReveal text="خلنا نحولها لواقع" delay={0.15} />
+            </p>
+
+            <Reveal delay={0.25} className="mt-10 sm:mt-12">
+              <ButtonLink
+                href={copy.whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="outline"
+                size="lg"
+                className="gap-4 px-9 py-5 text-lg sm:text-xl"
+              >
+                <WhatsAppMark className="size-6" />
+                راسلنا الحين
+                <ButtonArrow className="size-5" />
+              </ButtonLink>
+            </Reveal>
+
+            <Reveal delay={0.35}>
+              <p className="t-meta mt-6 text-smoke">
+                نرد خلال ساعات العمل · الرياض
+              </p>
+            </Reveal>
+          </div>
+
+          {/* ---- The slate ----
+              Hidden from assistive tech: it says nothing the copy beside it
+              has not already said, and its own label would only interrupt. */}
+          <Reveal
+            delay={0.15}
+            duration={1.2}
+            aria-hidden
+            className="col-span-12 mx-auto w-full max-w-sm lg:col-span-6 lg:col-start-7 lg:max-w-none"
+          >
+            <Slate />
+          </Reveal>
         </div>
 
-        {/* The one big button on the page. */}
-        <Reveal delay={0.2} className="mt-14 sm:mt-20">
-          {/* The page's single biggest action — same button as everywhere
-              else, just scaled up. */}
-          <ButtonLink
-            href={copy.whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="outline"
-            size="lg"
-            className="gap-5 px-10 py-6 text-xl sm:px-14 sm:py-7 sm:text-2xl"
-          >
-            <WhatsAppMark className="size-6 sm:size-7" />
-            راسلنا الحين
-            <ButtonArrow className="size-5" />
-          </ButtonLink>
-        </Reveal>
-
-        {/* Channel index */}
-        <div className="mt-20 grid gap-px border-t border-hairline sm:mt-28 sm:grid-cols-3">
+        {/* ---- Channel index ---- */}
+        <div className="mt-16 grid gap-px border-t border-hairline sm:mt-20 sm:grid-cols-3">
           {channels.map((channel, i) => (
             <Reveal
               key={channel.label}
