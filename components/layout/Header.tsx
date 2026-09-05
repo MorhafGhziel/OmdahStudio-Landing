@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { LogOut } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { useAdmin } from "@/lib/admin-context";
 import { Button, ButtonArrow } from "@/components/ui/Button";
 import { EASE } from "@/lib/motion";
@@ -24,7 +24,7 @@ export function Header() {
   // light up a nav item that isn't on screen yet.
   const [active, setActive] = useState<string>("");
   const [lifted, setLifted] = useState(false);
-  const { isAdmin, logout } = useAdmin();
+  const { isAdmin } = useAdmin();
   const pathname = usePathname();
   const { scrollY } = useScroll();
 
@@ -135,14 +135,16 @@ export function Header() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            {/* Signed in, the header's job is a way back to the desk —
+                not a sign-out button sitting next to the public CTA. */}
             {isAdmin && (
-              <button
-                onClick={logout}
+              <Link
+                href="/admin"
                 className="t-label-ar hidden items-center gap-1.5 rounded-full border border-clay/30 px-3 py-2 text-clay transition-colors hover:bg-clay/10 sm:flex"
               >
-                <LogOut className="size-3" />
-                خروج
-              </button>
+                <SlidersHorizontal className="size-3" />
+                لوحة التحكم
+              </Link>
             )}
 
             <Button
