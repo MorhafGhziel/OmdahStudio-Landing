@@ -33,16 +33,21 @@ export default function LoginPage() {
       });
       const data = await res.json();
 
-      // The endpoint answers unknown addresses with a neutral message so it
-      // can't be used to enumerate who has access.
       if (!res.ok || data.error) {
         setError(data.error ?? "تعذّر إرسال الرمز");
-      } else if (data.message?.includes("If the email is registered")) {
-        setError("هذا البريد غير مصرّح له بالدخول");
-      } else {
-        setNotice("أرسلنا رمز التحقق إلى بريدك");
-        setStep("code");
+        return;
       }
+
+      /*
+       * The endpoint answers registered and unknown addresses identically, so
+       * that it cannot be used to find out who has access. That means the
+       * client cannot tell either — and must not pretend to. An earlier
+       * version read that neutral reply as a refusal, which told every
+       * allowlisted editor their address was not allowed while the code was
+       * already in their inbox.
+       */
+      setNotice("إذا كان البريد مصرّحًا له، وصله رمز الدخول الآن");
+      setStep("code");
     } catch {
       setError("تعذّر الاتصال. تحقق من الشبكة وحاول مرة ثانية");
     } finally {
@@ -58,8 +63,17 @@ export default function LoginPage() {
     const ok = await loginWithCode(email, code);
     setBusy(false);
 
-    if (ok) router.push("/");
-    else setError("الرمز غير صحيح أو منتهي");
+    if (!ok) {
+      setError("الرمز غير صحيح أو منتهي");
+      return;
+    }
+
+    // Read straight off the URL rather than through useSearchParams, which
+    // would force this page under a Suspense boundary for a single string.
+    // Only same-site paths are honoured, so ?next cannot become an open
+    // redirect to another host.
+    const next = new URLSearchParams(window.location.search).get("next");
+    router.replace(next?.startsWith("/") && !next.startsWith("//") ? next : "/admin");
   };
 
   return (

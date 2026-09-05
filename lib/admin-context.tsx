@@ -32,12 +32,18 @@ function subscribe(listener: () => void) {
   };
 }
 
-function getSnapshot(): boolean {
+/** The stored token, or null. Safe to call before hydration finishes. */
+export function readToken(): string | null {
   try {
-    return Boolean(localStorage.getItem(TOKEN_KEY));
+    return localStorage.getItem(TOKEN_KEY);
   } catch {
-    return false;
+    // Private-mode Safari and blocked site data both throw on access.
+    return null;
   }
+}
+
+function getSnapshot(): boolean {
+  return Boolean(readToken());
 }
 
 /** The server has no session, so it always renders the signed-out view. */
