@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { EditableText } from "@/components/admin/EditableText";
 import { Reveal } from "@/components/motion/Reveal";
 import { useSection } from "@/lib/content";
 
@@ -14,7 +13,7 @@ const SITEMAP = [
 ];
 
 export function Footer() {
-  const { copy, setField } = useSection("footer");
+  const { copy } = useSection("footer");
 
   return (
     <footer className="relative z-10 overflow-hidden border-t border-hairline">
@@ -29,12 +28,9 @@ export function Footer() {
               height={73}
               className="h-9 w-auto"
             />
-            <EditableText
-              as="p"
-              value={copy.tagline}
-              onSave={(v) => setField("tagline", v)}
-              className="t-h3 mt-6 max-w-xs font-normal text-ash"
-            />
+            <p className="t-h3 mt-6 max-w-xs font-normal text-ash">
+              {copy.tagline}
+            </p>
           </div>
 
           {/* Sitemap */}
@@ -56,11 +52,7 @@ export function Footer() {
 
           {/* Contact */}
           <div className="col-span-6 lg:col-span-3 lg:col-start-10">
-            <EditableText
-              value={copy.contactHeading}
-              onSave={(v) => setField("contactHeading", v)}
-              className="t-label-ar text-smoke"
-            />
+            <p className="t-label-ar text-smoke">{copy.contactHeading}</p>
             <ul className="mt-5 space-y-3">
               <li>
                 <Link
@@ -83,19 +75,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <EditableText
-                  value={copy.email}
-                  onSave={(v) => setField("email", v)}
-                  className="block"
+                <Link
+                  href={`mailto:${copy.email}`}
+                  dir="ltr"
+                  className="link-rule text-[0.9375rem] text-chalk"
                 >
-                  <Link
-                    href={`mailto:${copy.email}`}
-                    dir="ltr"
-                    className="link-rule text-[0.9375rem] text-chalk"
-                  >
-                    {copy.email}
-                  </Link>
-                </EditableText>
+                  {copy.email}
+                </Link>
               </li>
             </ul>
           </div>

@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
-import { EditControl, EditableText } from "@/components/admin/EditableText";
 import { SmartVideo } from "@/components/media/SmartVideo";
 import { WordReveal } from "@/components/motion/WordReveal";
 import { Button, ButtonArrow } from "@/components/ui/Button";
@@ -12,7 +11,7 @@ import { useWorks } from "@/lib/data";
 import { EASE } from "@/lib/motion";
 
 export function Hero() {
-  const { copy, setField } = useSection("hero");
+  const { copy } = useSection("hero");
   const { featured } = useWorks();
   const [soundOn, setSoundOn] = useState(false);
 
@@ -37,23 +36,13 @@ export function Hero() {
           Omdah&nbsp;— Visual Production · Riyadh
         </motion.p>
 
-        <EditableText
-          as="h1"
-          value={copy.title}
-          onSave={(v) => setField("title", v)}
-          className="t-display mt-7 text-chalk"
-        >
+        <h1 className="t-display mt-7 text-chalk">
           <WordReveal text={copy.title} immediate delay={0.25} />
-        </EditableText>
+        </h1>
 
-        <EditableText
-          as="p"
-          value={copy.subtitle}
-          onSave={(v) => setField("subtitle", v)}
-          className="t-lead mx-auto mt-6 max-w-xl text-ash"
-        >
+        <p className="t-lead mx-auto mt-6 max-w-xl text-ash">
           <WordReveal text={copy.subtitle} immediate delay={0.5} />
-        </EditableText>
+        </p>
 
         {/* Two buttons of equal weight: one filled, one outlined. */}
         <motion.div
@@ -66,12 +55,6 @@ export function Hero() {
             {copy.ctaText}
             <ButtonArrow />
           </Button>
-
-          <EditControl
-            value={copy.ctaText}
-            onSave={(v) => setField("ctaText", v)}
-            label="تعديل نص الزر"
-          />
 
           <Button variant="outline" size="lg" onClick={() => scrollTo("works")}>
             شاهد أعمالنا

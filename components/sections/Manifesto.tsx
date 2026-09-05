@@ -1,6 +1,5 @@
 "use client";
 
-import { EditableText } from "@/components/admin/EditableText";
 import { Lens } from "@/components/graphics/Lens";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button, ButtonArrow } from "@/components/ui/Button";
@@ -8,18 +7,16 @@ import { WordReveal } from "@/components/motion/WordReveal";
 import { useSection } from "@/lib/content";
 
 export function Manifesto() {
-  const { copy, setField } = useSection("hero");
+  const { copy } = useSection("hero");
 
   return (
     <section id="about" className="border-t border-hairline">
       <div className="gutter py-20 sm:py-24 lg:py-32">
         {/* Wall label */}
         <Reveal className="flex items-center gap-6 border-b border-hairline pb-5">
-          <EditableText
-            value={copy.storyTitle}
-            onSave={(v) => setField("storyTitle", v)}
-            className="t-label-ar shrink-0 text-clay"
-          />
+          <span className="t-label-ar shrink-0 text-clay">
+            {copy.storyTitle}
+          </span>
           <span className="t-label text-smoke">Our Story</span>
           <span className="t-serif ms-auto text-2xl text-smoke">01</span>
         </Reveal>
@@ -27,15 +24,9 @@ export function Manifesto() {
         <div className="grid grid-cols-12 items-start gap-y-14 pt-12 sm:pt-16">
           {/* The statement */}
           <div className="col-span-12 lg:col-span-8">
-            <EditableText
-              as="h2"
-              value={copy.description}
-              onSave={(v) => setField("description", v)}
-              multiline
-              className="t-h1 font-normal text-chalk"
-            >
+            <h2 className="t-h1 font-normal text-chalk">
               <WordReveal text={copy.description} />
-            </EditableText>
+            </h2>
 
             <Reveal delay={0.25} className="mt-10 sm:mt-12">
               <Button

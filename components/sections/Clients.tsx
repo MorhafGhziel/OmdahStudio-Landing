@@ -1,14 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
-import { ClientManager } from "@/components/admin/ClientManager";
-import { EditableText } from "@/components/admin/EditableText";
-import { AdminButton } from "@/components/admin/Field";
 import { Marquee } from "@/components/motion/Marquee";
 import { Reveal } from "@/components/motion/Reveal";
 import { WordReveal } from "@/components/motion/WordReveal";
-import { useAdmin } from "@/lib/admin-context";
 import { useSection } from "@/lib/content";
 import { useClients } from "@/lib/data";
 import { imageSrc } from "@/lib/media";
@@ -50,10 +45,8 @@ function LogoPlate({ client }: { client: ClientType }) {
 }
 
 export function Clients() {
-  const { copy, setField } = useSection("clients");
-  const { clients, loading, refresh } = useClients();
-  const { isAdmin } = useAdmin();
-  const [managing, setManaging] = useState(false);
+  const { copy } = useSection("clients");
+  const { clients, loading } = useClients();
 
   const half = Math.ceil(clients.length / 2);
   const rows = [clients.slice(0, half), clients.slice(half)];
@@ -69,36 +62,17 @@ export function Clients() {
 
           <div className="grid grid-cols-12 gap-y-8 pt-12 sm:pt-16">
             <div className="col-span-12 lg:col-span-6">
-              <EditableText
-                as="h2"
-                value={copy.title}
-                onSave={(v) => setField("title", v)}
-                className="t-h1 text-chalk"
-              >
+              <h2 className="t-h1 text-chalk">
                 <WordReveal text={copy.title} />
-              </EditableText>
+              </h2>
             </div>
             <Reveal
               delay={0.15}
               className="col-span-12 self-end lg:col-span-4 lg:col-start-9"
             >
-              <EditableText
-                as="p"
-                value={copy.description}
-                onSave={(v) => setField("description", v)}
-                multiline
-                className="t-lead text-ash"
-              />
+              <p className="t-lead text-ash">{copy.description}</p>
             </Reveal>
           </div>
-
-          {isAdmin && (
-            <div className="mt-10">
-              <AdminButton onClick={() => setManaging(true)}>
-                إدارة العملاء
-              </AdminButton>
-            </div>
-          )}
         </div>
 
         {/* Two rows drifting against each other. */}
@@ -125,13 +99,6 @@ export function Clients() {
               )}
         </div>
       </div>
-
-      <ClientManager
-        open={managing}
-        clients={clients}
-        onClose={() => setManaging(false)}
-        onChanged={refresh}
-      />
     </section>
   );
 }
